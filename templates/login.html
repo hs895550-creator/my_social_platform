@@ -3,15 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>登录 - MySocial</title>
+    <title data-i18n="login_title">登录 - MySocial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="/static/style.css" rel="stylesheet">
+    <script src="/static/js/translations.js"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
+<body class="bg-gray-100 flex items-center justify-center h-screen relative">
+    <div class="absolute top-4 right-4">
+        <select id="lang-switcher" onchange="changeLanguage(this.value)" class="border rounded p-1 bg-white shadow-sm">
+            <!-- Options populated by JS -->
+        </select>
+    </div>
+
     <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-pink-600">MySocial</h1>
-            <p class="text-gray-500">会员登录</p>
+            <p class="text-gray-500" data-i18n="login_header">会员登录</p>
         </div>
 
         {% if error %}
@@ -22,23 +29,86 @@
 
         <form action="/login" method="post" class="space-y-6">
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">手机号</label>
-                <input type="tel" name="phone" class="w-full border rounded px-3 py-2" required>
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="phone_label">手机号</label>
+                <input type="tel" name="phone" class="w-full border rounded px-3 py-2" required data-i18n-placeholder="phone_placeholder">
             </div>
 
             <div>
-                <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
-                <input type="password" name="password" class="w-full border rounded px-3 py-2" required>
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="password_label">密码</label>
+                <input type="password" name="password" class="w-full border rounded px-3 py-2" required data-i18n-placeholder="password_placeholder">
             </div>
 
-            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded transition duration-300">
+            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded transition duration-300" data-i18n="btn_login">
                 登录
             </button>
         </form>
 
         <div class="text-center mt-6">
-            <p class="text-sm text-gray-600">还没有账号？ <a href="/register" class="text-pink-600 font-bold">免费注册</a></p>
+            <p class="text-sm text-gray-600"><span data-i18n="no_account">还没有账号？</span> <a href="/register" class="text-pink-600 font-bold" data-i18n="register_free_link">免费注册</a></p>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const switcher = document.getElementById('lang-switcher');
+            if (typeof translations !== 'undefined') {
+                Object.keys(translations).forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.innerText = translations[lang].lang_name;
+                    switcher.appendChild(option);
+                });
+
+                const savedLang = localStorage.getItem('lang') || 'zh';
+                switcher.value = savedLang;
+                applyLanguage(savedLang);
+            }
+
+            // Init Country Codes
+            const codeSelect = document.getElementById('country-code');
+            if (typeof countryCodes !== 'undefined' && codeSelect) {
+                // Sort by name
+                countryCodes.sort((a, b) => a.name.localeCompare(b.name));
+                
+                countryCodes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.dial_code;
+                    opt.text = `${c.code} (${c.dial_code})`;
+                    if (c.code === 'US') opt.selected = true;
+                    codeSelect.appendChild(opt);
+                });
+                // Initialize hidden input
+                updateFullPhone();
+            }
+        });
+
+        function updateFullPhone() {
+            const code = document.getElementById('country-code').value;
+            const num = document.getElementById('phone-input').value;
+            document.getElementById('full-phone').value = code + num;
+        }
+
+        function changeLanguage(lang) {
+            localStorage.setItem('lang', lang);
+            applyLanguage(lang);
+        }
+
+        function applyLanguage(lang) {
+            if (!translations[lang]) lang = 'en';
+            const t = translations[lang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (t[key]) el.placeholder = t[key];
+            });
+
+            if (t.login_title) document.title = t.login_title;
+        }
+    </script>
 </body>
 </html>
