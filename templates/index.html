@@ -354,79 +354,119 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/translations.js"></script>
+<script src="/static/js/country_codes.js"></script>
 <script>
-    // 语言切换
-    const translations = {
-        'zh': {
-            'slogan': '专注于欧美南美洲的优质相亲网',
-            'feature1_title': '高端精英社区',
-            'feature1_desc': '汇聚全球各地的亚裔高净值单身人士',
-            'feature2_title': '严格资质审核',
-            'feature2_desc': '实名认证 + 资产审核，确保圈层纯净',
-            'start_now': '现在就开始！',
-            'register_tab': '免费注册',
-            'login_tab': '会员登录',
-            'phone_placeholder': '手机号码',
-            'password_setup_placeholder': '设置密码',
-            'password_placeholder': '输入密码',
-            'btn_register': '立即注册',
-            'btn_login': '登录',
-            'gender_select': '我是...',
-            'male': '男士',
-            'female': '女士',
-            'age_select': '年龄段',
-            'agree_terms': '我已阅读并同意《用户协议》与《隐私政策》',
-            'about_title_nav': '关于我们',
-            'about_desc_nav': '了解我们的使命与愿景',
-            'terms_title': '使用条款',
-            'terms_desc': '了解您的权利和义务',
-            'privacy_title': '隐私声明',
-            'privacy_desc': '我们如何保护您的数据',
-            'safety_title': '网络交友安全',
-            'safety_desc': '安全交友指南与防骗提示'
-        },
-        'en': {
-            'slogan': 'Premium Dating for Asian Elite in Americas & Europe',
-            'feature1_title': 'Elite Community',
-            'feature1_desc': 'High-net-worth Asian singles worldwide',
-            'feature2_title': 'Strict Verification',
-            'feature2_desc': 'ID + Asset verification for quality assurance',
-            'start_now': 'Start Now!',
-            'register_tab': 'Sign Up',
-            'login_tab': 'Log In',
-            'phone_placeholder': 'Phone Number',
-            'password_setup_placeholder': 'Set Password',
-            'password_placeholder': 'Enter Password',
-            'btn_register': 'Register Now',
-            'btn_login': 'Log In',
-            'gender_select': 'I am...',
-            'male': 'Male',
-            'female': 'Female',
-            'age_select': 'Age Range',
-            'agree_terms': 'I agree to Terms & Privacy Policy',
-            'about_title_nav': 'About Us',
-            'about_desc_nav': 'Our mission and vision',
-            'terms_title': 'Terms of Use',
-            'terms_desc': 'Your rights and obligations',
-            'privacy_title': 'Privacy Policy',
-            'privacy_desc': 'How we protect your data',
-            'safety_title': 'Safety Tips',
-            'safety_desc': 'Dating safety guide',
-            'success_stories_title': 'Success Stories',
-            'story1_title': 'Worth flying half the world for her',
-            'story1_desc': 'We found we wanted the same things and are a match made in heaven. I never thought I\'d meet someone like her here.',
-            'story2_title': 'Tom said he is definitely interested',
-            'story2_desc': 'Being alone in the US, I wanted to find a partner. The translation feature here made communication barrier-free.',
-            'story3_title': 'Found a great partner',
-            'story3_desc': 'I found a great partner here. We met in 2019 and communicated on the platform for 4 years.',
-            'story4_title': 'Found the perfect man',
-            'story4_desc': 'Thank you. Two months after meeting, my other half came to visit. We are in love and met each other\'s parents.',
-            'story5_title': 'Thank you for visiting',
-            'story5_desc': 'He is kind, funny, responsible, and respects women. He puts family first. The most perfect man I\'ve met.',
-            'story6_title': 'Love is there - Don\'t give up',
-            'story6_desc': 'We both joined hoping to find a life partner, and we did! It really works!'
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. 初始化语言
+        initLanguage();
+        
+        // 2. 初始化国家区号
+        initCountryCodes();
+
+        // 3. 填充年龄下拉框
+        populateAgeSelect();
+    });
+
+    // --- 语言处理逻辑 ---
+    function initLanguage() {
+        const savedLang = localStorage.getItem('lang') || 'zh';
+        
+        // 填充语言下拉菜单
+        const dropdown = document.getElementById('lang-dropdown');
+        if (dropdown && typeof translations !== 'undefined') {
+            dropdown.innerHTML = ''; // 清空旧的
+            Object.keys(translations).forEach(lang => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.className = 'dropdown-item';
+                a.href = '#';
+                a.onclick = (e) => { e.preventDefault(); changeLanguage(lang); };
+                a.innerText = translations[lang].lang_name;
+                li.appendChild(a);
+                dropdown.appendChild(li);
+            });
         }
-    };
+
+        // 应用当前语言
+        changeLanguage(savedLang);
+    }
+
+    function changeLanguage(lang) {
+        localStorage.setItem('lang', lang);
+        
+        // 更新顶部显示
+        const currentLangSpan = document.getElementById('currentLang');
+        if (currentLangSpan && translations[lang]) {
+            currentLangSpan.innerText = '🌐 ' + translations[lang].lang_name;
+        }
+
+        // 更新所有带有 data-i18n 属性的元素
+        document.querySelectorAll('[data-i18n]').forEach(element => {
+            const key = element.getAttribute('data-i18n');
+            if (translations[lang] && translations[lang][key]) {
+                element.innerText = translations[lang][key];
+            }
+        });
+
+        // 更新所有带有 data-i18n-placeholder 属性的元素
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+            const key = element.getAttribute('data-i18n-placeholder');
+            if (translations[lang] && translations[lang][key]) {
+                element.placeholder = translations[lang][key];
+            }
+        });
+        
+        // 更新下拉框选项（如果需要）
+        updateSelectOptions(lang);
+    }
+
+    function updateSelectOptions(lang) {
+        // 性别
+        const genderSelect = document.querySelector('select[name="gender"]');
+        if (genderSelect && translations[lang]) {
+            genderSelect.options[0].text = translations[lang]['im_male'] || '我是男士';
+            genderSelect.options[1].text = translations[lang]['im_female'] || '我是女士';
+        }
+    }
+
+    // --- 国家区号处理逻辑 ---
+    function initCountryCodes() {
+        const select = document.getElementById('country-select');
+        if (!select || typeof countryCodes === 'undefined') return;
+
+        // 按名称排序
+        countryCodes.sort((a, b) => a.name.localeCompare(b.name));
+
+        countryCodes.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.dial_code;
+            option.text = `${c.code} (${c.dial_code})`;
+            if (c.code === 'US') option.selected = true; // 默认选美国
+            select.appendChild(option);
+        });
+        
+        // 初始化隐藏字段
+        updateCountry();
+    }
+
+    function updateCountry() {
+        const code = document.getElementById('country-select').value;
+        // 可以在这里更新一些UI显示，或者只是确保提交时使用了正确的区号
+        // 注意：表单提交时我们需要拼接区号和手机号
+    }
+
+    // --- 其他辅助逻辑 ---
+    function populateAgeSelect() {
+        const select = document.getElementById('age-select');
+        if(!select) return;
+        for(let i=30; i<=80; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = i;
+            select.appendChild(opt);
+        }
+    }
 
     function sendSmsCode() {
         const countryCode = document.getElementById('country-select').value;
@@ -465,55 +505,22 @@
         });
     }
 
-    function changeLanguage(lang) {
-        document.getElementById('currentLang').innerHTML = lang === 'zh' ? '🌐 中文 (简体)' : '🌐 English';
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (translations[lang][key]) {
-                el.innerText = translations[lang][key];
-            }
-        });
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-            const key = el.getAttribute('data-i18n-placeholder');
-            if (translations[lang][key]) {
-                el.placeholder = translations[lang][key];
-            }
-        });
-    }
-    
-    // 初始化国家代码
-    const countries = [
-        {code: '+1', name: 'USA/Canada'},
-        {code: '+86', name: 'China'},
-        {code: '+44', name: 'UK'},
-        {code: '+33', name: 'France'},
-        {code: '+49', name: 'Germany'},
-        {code: '+81', name: 'Japan'},
-        {code: '+61', name: 'Australia'}
-    ];
-    
-    const select = document.getElementById('country-select');
-    countries.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.code;
-        opt.innerText = c.code + ' ' + c.name;
-        select.appendChild(opt);
-    });
-
-    // 提交前合并手机号
+    // 表单提交前处理
     function prepareRegister() {
-        const country = document.getElementById('country-select').value;
+        const code = document.getElementById('country-select').value;
         const phone = document.getElementById('phone-input').value;
-        document.getElementById('real-phone').value = country + phone;
-        return true;
-    }
-    
-    function prepareLogin() {
-        const phone = document.getElementById('login-phone').value;
-        // 简单处理，假设登录只输数字，或者这里不做处理直接提交
-        // 如果登录也需要国家代码，应该加同样的下拉框。
-        // 为了简化，假设用户注册时存的是 +1xxxxx，登录时如果没输 + 号，可能匹配不到。
-        // 这里暂时不改登录逻辑，假设用户知道怎么输。
+        const realPhoneInput = document.getElementById('real-phone');
+        
+        if(realPhoneInput) {
+            realPhoneInput.value = code + phone;
+        }
+        
+        const countryText = document.getElementById('country-select').options[document.getElementById('country-select').selectedIndex].text;
+            const realCountryInput = document.getElementById('real-country');
+            if(realCountryInput) {
+                realCountryInput.value = countryText;
+            }
+        
         return true;
     }
 </script>
