@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>会员资料 - GlobalAsianElite</title>
+    <title data-i18n="member_profile_title">会员资料 - GlobalAsianElite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary-purple: #5e3a6e; }
@@ -18,8 +18,8 @@
         <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/messages">讯息</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
+                <li class="nav-item"><a class="nav-link" href="/messages" data-i18n="nav_messages">讯息</a></li>
             </ul>
         </div>
     </div>
@@ -39,22 +39,22 @@
                     {% endif %}
                     <h4 class="mb-2">
                         {{ member['name'] or ('会员'+member['id']|string) }}
-                        {% if member['is_ai'] %}<span class="badge bg-info ms-2">系统助手</span>{% endif %}
-                        {% if member['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                        {% if member['is_ai'] %}<span class="badge bg-info ms-2" data-i18n="ai_badge">系统助手</span>{% endif %}
+                        {% if member['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                     </h4>
                     <div class="text-muted">{{ member['gender'] }} • {{ member['age_range'] }}</div>
                     <div class="text-muted">{{ member['city'] }} {{ member['country'] }}</div>
                     <div class="d-grid gap-2 mt-3">
                         <form action="/like/{{ member['id'] }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-light">❤ 点赞</button>
+                            <button type="submit" class="btn btn-light" data-i18n="btn_like">❤ 点赞</button>
                         </form>
                         <form action="/favorite/{{ member['id'] }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-outline-secondary">☆ 加入最爱</button>
+                            <button type="submit" class="btn btn-outline-secondary" data-i18n="btn_favorite">☆ 加入最爱</button>
                         </form>
                         <form action="/block/{{ member['id'] }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger">封锁</button>
+                            <button type="submit" class="btn btn-outline-danger" data-i18n="btn_block">封锁</button>
                         </form>
-                        <a href="/chat/{{ member['id'] }}" class="btn btn-primary">发私信</a>
+                        <a href="/chat/{{ member['id'] }}" class="btn btn-primary" data-i18n="btn_message">发私信</a>
                     </div>
                 </div>
             </div>
@@ -62,9 +62,9 @@
 
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-white">简介</div>
+                <div class="card-header bg-white" data-i18n="profile_intro_title">简介</div>
                 <div class="card-body">
-                    <p class="text-muted">该会员尚未填写更多资料。</p>
+                    <p class="text-muted" data-i18n="profile_intro_empty">该会员尚未填写更多资料。</p>
                 </div>
             </div>
         </div>
@@ -72,5 +72,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/translations.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyLanguage();
+    });
+</script>
 </body>
 </html>

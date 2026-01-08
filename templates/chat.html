@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>聊天 - GlobalAsianElite</title>
+    <title data-i18n="chat_title">聊天 - GlobalAsianElite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --primary-purple: #5e3a6e; }
@@ -23,8 +23,8 @@
         <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard">首页</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/messages">讯息</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/messages" data-i18n="nav_messages">讯息</a></li>
             </ul>
         </div>
     </div>
@@ -36,12 +36,12 @@
             {% if peer['avatar_path'] %}
             <img src="{{ peer['avatar_path'] }}" class="rounded-circle me-3" style="width:40px;height:40px;object-fit:cover;">
             {% else %}
-            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">{{ (peer['name'] or '会员')[:1] }}</div>
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">{{ (peer['name'] or 'M')[:1] }}</div>
             {% endif %}
             <div>
-                <strong>{{ peer['name'] or '会员' }}</strong>
-                {% if peer['is_ai'] %}<span class="badge bg-info ms-2">系统助手</span>{% endif %}
-                {% if peer['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                <strong>{% if peer['name'] %}{{ peer['name'] }}{% else %}<span data-i18n="member_default">会员</span>{% endif %}</strong>
+                {% if peer['is_ai'] %}<span class="badge bg-info ms-2" data-i18n="ai_badge">系统助手</span>{% endif %}
+                {% if peer['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                 <div class="text-muted small">{{ peer['country'] }}</div>
             </div>
         </div>
@@ -57,13 +57,20 @@
         </div>
         <div class="card-footer bg-white">
             <form action="/chat/{{ peer['id'] }}/send" method="post" class="d-flex gap-2">
-                <input type="text" class="form-control" name="content" placeholder="输入消息..." required>
-                <button class="btn btn-primary">发送</button>
+                <input type="text" class="form-control" name="content" placeholder="输入消息..." data-i18n-placeholder="chat_input_placeholder" required>
+                <button class="btn btn-primary" data-i18n="chat_send_btn">发送</button>
             </form>
         </div>
     </div>
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/translations.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const lang = localStorage.getItem('lang') || 'zh';
+        applyLanguage(lang);
+    });
+</script>
 </body>
 </html>

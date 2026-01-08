@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上传照片 - GlobalAsianElite</title>
+    <title data-i18n="photos_title">上传照片 - GlobalAsianElite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -108,19 +108,19 @@
         <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link active" href="/profile/photos">照片</a></li>
-                <li class="nav-item"><a class="nav-link" href="/verification">个人文档</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard">佳缘条件</a></li>
-                <li class="nav-item"><a class="nav-link" href="/dashboard">进入首页</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/profile/photos" data-i18n="nav_photos">照片</a></li>
+                <li class="nav-item"><a class="nav-link" href="/verification" data-i18n="nav_verification">个人文档</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_match">佳缘条件</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">进入首页</a></li>
             </ul>
         </div>
     </div>
 </nav>
 
 <div class="container">
-    <h3 class="section-title">上传照片 - 另外加入4张照片到您的文档</h3>
+    <h3 class="section-title" data-i18n="upload_photos_title">上传照片 - 另外加入4张照片到您的文档</h3>
     {% if request.query_params.get('uploaded') %}
-    <div class="alert alert-success">头像已上传成功</div>
+    <div class="alert alert-success" data-i18n="avatar_uploaded_success">头像已上传成功</div>
     {% endif %}
     
     <div class="row">
@@ -135,7 +135,7 @@
                         {% else %}
                         <div class="placeholder">+</div>
                         {% endif %}
-                        <label class="upload-btn-overlay" for="upload1">上传</label>
+                        <label class="upload-btn-overlay" for="upload1" data-i18n="upload_btn">上传</label>
                     </div>
                     <form action="/verify" method="post" enctype="multipart/form-data" id="form1">
                         <input type="file" id="upload1" name="avatar" accept="image/*" class="d-none" onchange="document.getElementById('form1').submit()">
@@ -199,5 +199,11 @@
     </div>
 </div>
 
+<script src="/static/js/translations.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyLanguage();
+    });
+</script>
 </body>
 </html>

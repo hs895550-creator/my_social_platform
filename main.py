@@ -201,6 +201,7 @@ async def index(request: Request):
 async def register(
     request: Request,
     phone: str = Form(...),
+    code: str = Form(...),
     password: str = Form(...),
     gender: str = Form(...),
     age_range: str = Form(...),
@@ -306,6 +307,11 @@ async def profile_edit_page(request: Request):
         async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
             user = await cursor.fetchone()
             
+        if user["status"] != "active":
+            if user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+            
     return templates.TemplateResponse("profile_edit.html", {"request": request, "user": user})
 
 @app.post("/profile/update")
@@ -353,6 +359,12 @@ async def profile_photos_page(request: Request):
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
             user = await cursor.fetchone()
+            
+        if user["status"] != "active":
+            if user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+
         async with db.execute("SELECT photo_path FROM user_photos WHERE user_id = ? ORDER BY id DESC LIMIT 4", (user_id,)) as cursor:
             photos = await cursor.fetchall()
             
@@ -418,11 +430,14 @@ async def verify(
             await db.execute("UPDATE users SET id_card_path = ? WHERE id = ?", (id_card_path, user_id))
         if asset_proof_path:
             await db.execute("UPDATE users SET asset_proof_path = ? WHERE id = ?", (asset_proof_path, user_id))
+        
+        # 检查是否已上传必要文档，更新状态
+        # 我们需要先查询当前状态，或者直接假设如果本次上传了关键文件就更新状态
+        # 更严谨的做法是查询数据库看是否两个字段都有值了
+        await db.execute("UPDATE users SET status = 'pending_approval' WHERE id = ? AND id_card_path IS NOT NULL AND asset_proof_path IS NOT NULL", (user_id,))
         await db.commit()
 
-    if avatar_path and not id_card_path and not asset_proof_path:
-        return RedirectResponse(url="/profile/photos?uploaded=1", status_code=303)
-    return RedirectResponse(url="/dashboard", status_code=303)
+    return RedirectResponse(url="/status_check", status_code=303)
 
 @app.post("/photo/delete")
 async def photo_delete(request: Request, photo_id: int = Form(...)):
@@ -468,6 +483,12 @@ async def messages_page(request: Request):
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
             user = await cursor.fetchone()
+
+        if user["status"] != "active":
+            if user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+
         async with db.execute("SELECT id, name, country, avatar_path, is_verified, is_ai FROM users WHERE id != ? ORDER BY id DESC LIMIT 50", (user_id,)) as cursor:
             members = await cursor.fetchall()
         last_msgs = {}
@@ -491,9 +512,19 @@ async def member_page(request: Request, member_id: int):
     if not user_id:
         return RedirectResponse(url="/", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        # 检查当前用户状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            current_user = await cursor.fetchone()
+        
+        if current_user["status"] != "active":
+            if current_user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
         await db.commit()
-        db.row_factory = aiosqlite.Row
+        
         async with db.execute("SELECT id, name, gender, age_range, country, city, avatar_path, is_verified, is_ai FROM users WHERE id = ?", (member_id,)) as cursor:
             member = await cursor.fetchone()
         if not member:
@@ -506,46 +537,29 @@ async def member_page(request: Request, member_id: int):
 
 @app.get("/admin/users", response_class=HTMLResponse)
 async def admin_users(request: Request):
-    # 简易鉴权：检查 Cookie 或 Session 中是否有 admin 标记，或者在这里做个简单密码验证
-    # 为了演示方便，假设访问此 URL 需要输入密码，或者我们检查 session["is_admin"]
-    if not request.session.get("is_admin"):
-        return templates.TemplateResponse("admin_login.html", {"request": request})
-    
-    async with aiosqlite.connect(DATABASE) as db:
-        db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM users WHERE status = 'pending_approval' ORDER BY created_at DESC") as cursor:
-            pending_users = await cursor.fetchall()
-            
-    return templates.TemplateResponse("admin_dashboard.html", {"request": request, "users": pending_users})
-
-@app.post("/admin/login")
-async def admin_login(request: Request, password: str = Form(...)):
-    if password == ADMIN_PASSWORD:
-        request.session["is_admin"] = True
-        return RedirectResponse(url="/admin/users", status_code=303)
-    return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误"})
+    return RedirectResponse(url="/admin/dashboard", status_code=303)
 
 @app.post("/admin/approve/{user_id}")
 async def admin_approve(request: Request, user_id: int):
     if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/users", status_code=303)
+        return RedirectResponse(url="/admin/login", status_code=303)
         
     async with aiosqlite.connect(DATABASE) as db:
         await db.execute("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?", (user_id,))
         await db.commit()
         
-    return RedirectResponse(url="/admin/users", status_code=303)
+    return RedirectResponse(url="/admin/dashboard", status_code=303)
 
 @app.post("/admin/reject/{user_id}")
 async def admin_reject(request: Request, user_id: int):
     if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/users", status_code=303)
+        return RedirectResponse(url="/admin/login", status_code=303)
         
     async with aiosqlite.connect(DATABASE) as db:
         await db.execute("UPDATE users SET status = 'rejected' WHERE id = ?", (user_id,))
         await db.commit()
         
-    return RedirectResponse(url="/admin/users", status_code=303)
+    return RedirectResponse(url="/admin/dashboard", status_code=303)
 
 @app.get("/chat/{peer_id}", response_class=HTMLResponse)
 async def chat_page(request: Request, peer_id: int):
@@ -553,9 +567,19 @@ async def chat_page(request: Request, peer_id: int):
     if not user_id:
         return RedirectResponse(url="/", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        # 检查当前用户状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            current_user = await cursor.fetchone()
+        
+        if current_user["status"] != "active":
+            if current_user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
         await db.commit()
-        db.row_factory = aiosqlite.Row
+        
         async with db.execute("SELECT id, name, avatar_path, country, is_verified FROM users WHERE id = ?", (peer_id,)) as cursor:
             peer = await cursor.fetchone()
         if not peer:
@@ -581,6 +605,12 @@ async def chat_send(request: Request, peer_id: int, content: str = Form(...)):
     if not content.strip():
         return RedirectResponse(url=f"/chat/{peer_id}", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
+        # 检查状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row and row[0] != 'active':
+                return RedirectResponse(url="/status_check" if row[0] in ('pending_approval', 'rejected') else "/verification", status_code=303)
+
         await db.execute("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", (user_id, peer_id, content.strip()))
         await db.commit()
     return RedirectResponse(url=f"/chat/{peer_id}", status_code=303)
@@ -592,6 +622,13 @@ async def chat_box(request: Request, peer_id: int):
         raise HTTPException(status_code=401, detail="未登录")
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
+        
+        # 检查状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            current_user = await cursor.fetchone()
+        if current_user["status"] != "active":
+             raise HTTPException(status_code=403, detail="Account not active")
+
         async with db.execute("SELECT id, name, age_range, country, city, avatar_path, is_verified FROM users WHERE id = ?", (peer_id,)) as cursor:
             peer = await cursor.fetchone()
         if not peer:
@@ -622,9 +659,37 @@ async def chat_box_send(request: Request, peer_id: int, content: str = Form(...)
     if not content.strip():
         return {"ok": False}
     async with aiosqlite.connect(DATABASE) as db:
+        # 检查状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row and row[0] != 'active':
+                 return {"ok": False, "error": "Account not active"}
+
         await db.execute("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", (user_id, peer_id, content.strip()))
         await db.commit()
     return {"ok": True}
+
+@app.get("/status_check", response_class=HTMLResponse)
+async def status_check(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/")
+        
+    async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
+            user = await cursor.fetchone()
+            
+    if not user:
+        return RedirectResponse(url="/")
+        
+    if user["status"] == "active":
+        return RedirectResponse(url="/dashboard", status_code=303)
+        
+    if user["status"] == "pending_upload":
+        return RedirectResponse(url="/verification", status_code=303)
+
+    return templates.TemplateResponse("status_check.html", {"request": request, "user": user})
 
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request):
@@ -639,6 +704,19 @@ async def dashboard(request: Request):
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
             current_user = await cursor.fetchone()
+
+        # 强制状态检查
+        if not current_user:
+             return RedirectResponse(url="/", status_code=303)
+        
+        # 严格模式：非 active 状态一律禁止访问
+        if current_user["status"] != "active":
+            if current_user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            else:
+                # 包括 pending_upload 和可能存在的 NULL (老用户)
+                return RedirectResponse(url="/verification", status_code=303)
+
         f = request.query_params.get("filter")
         s = request.query_params.get("sort")
         country_filter = request.query_params.get("country")
@@ -724,6 +802,15 @@ async def activity_page(request: Request, type: str | None = None):
         return RedirectResponse(url="/", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
+        
+        # 检查状态
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            current_user = await cursor.fetchone()
+        if current_user["status"] != "active":
+            if current_user["status"] in ("pending_approval", "rejected"):
+                return RedirectResponse(url="/status_check", status_code=303)
+            return RedirectResponse(url="/verification", status_code=303)
+
         async with db.execute("SELECT COUNT(*) FROM likes WHERE liked_id = ?", (user_id,)) as c:
             likes_count = (await c.fetchone())[0]
         async with db.execute("SELECT COUNT(*) FROM favorites WHERE favoriter_id = ?", (user_id,)) as c:

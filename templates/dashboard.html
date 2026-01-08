@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalAsianElite - 首页</title>
+    <title data-i18n="dashboard_title">GlobalAsianElite - 首页</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/js/translations.js"></script>
     <style>
         :root {
             --primary-purple: #5e3a6e;
@@ -68,14 +69,14 @@
         <a class="navbar-brand" href="#">GlobalAsianElite</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link active" href="/dashboard">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/messages">讯息 <span class="badge bg-danger rounded-pill">6</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/activity">活动纪录 <span class="badge bg-secondary rounded-pill">{{ activity_counts['likes'] + activity_counts['favorites'] + activity_counts['views'] + activity_counts['blocks'] }}</span></a></li>
+                <li class="nav-item"><a class="nav-link active" href="/dashboard" data-i18n="nav_home">首页</a></li>
+                <li class="nav-item"><a class="nav-link" href="/messages"><span data-i18n="nav_messages">讯息</span> <span class="badge bg-danger rounded-pill">6</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/activity"><span data-i18n="nav_activity">活动纪录</span> <span class="badge bg-secondary rounded-pill">{{ activity_counts['likes'] + activity_counts['favorites'] + activity_counts['views'] + activity_counts['blocks'] }}</span></a></li>
             </ul>
             <span class="navbar-text text-white">
-                欢迎, {{ user.name or '会员' }}
+                <span data-i18n="welcome_msg">欢迎</span>, {{ user.name or '会员' }}
             </span>
-            <a href="/logout" class="btn btn-outline-light btn-sm ms-3">退出</a>
+            <a href="/logout" class="btn btn-outline-light btn-sm ms-3" data-i18n="logout_btn">退出</a>
         </div>
     </div>
 </nav>
@@ -92,22 +93,22 @@
         <div>
             <div class="notify-title">
                 {% if n['type'] == 'view' %}
-                有人查看了您的个人资料！
+                <span data-i18n="notify_view_profile">有人查看了您的个人资料！</span>
                 {% elif n['type'] == 'like' %}
-                你又收到了一个赞！
+                <span data-i18n="notify_like_profile">你又收到了一个赞！</span>
                 {% else %}
-                新通知
+                <span data-i18n="notify_new">新通知</span>
                 {% endif %}
             </div>
             <div class="small text-white-50">
-                <a href="/member/{{ n['actor_id'] }}" class="link-light text-decoration-none">
+                <a href="/member/{{ n['actor_id'] }}" class="link-light text-decoration-none" data-i18n="notify_view_interaction">
                     查看谁与您互动
                 </a>
             </div>
         </div>
         <div class="notify-actions">
             <form action="/notifications/{{ n['id'] }}/read" method="post">
-                <button class="btn btn-sm btn-outline-light" type="submit">关闭</button>
+                <button class="btn btn-sm btn-outline-light" type="submit" data-i18n="notify_close_btn">关闭</button>
             </form>
         </div>
     </div>
@@ -118,18 +119,18 @@
 <!-- Right Side Quick Menu -->
 <div id="quickMenu" class="position-fixed" style="right:16px; top:14px; z-index:1070;">
     <div class="dropdown">
-        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--primary-purple); color: #fff; border-color: #fff;">
+        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--primary-purple); color: #fff; border-color: #fff;" data-i18n="quick_menu_btn">
             功能
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow">
-            <li><a class="dropdown-item" href="/member/{{ user.id }}">浏览文档</a></li>
-            <li><a class="dropdown-item" href="/profile/edit">文档编辑</a></li>
-            <li><a class="dropdown-item" href="/profile/photos">照片</a></li>
-            <li><a class="dropdown-item" href="/dashboard">佳缘</a></li>
-            <li><a class="dropdown-item" href="/profile/edit#appearance">兴趣嗜好</a></li>
-            <li><a class="dropdown-item" href="/profile/edit#basic">个性文档</a></li>
-            <li><a class="dropdown-item" href="/verification">验证文档资料</a></li>
-            <li><a class="dropdown-item" href="/safety">IMBRA</a></li>
+            <li><a class="dropdown-item" href="/member/{{ user.id }}" data-i18n="quick_view_profile">浏览文档</a></li>
+            <li><a class="dropdown-item" href="/profile/edit" data-i18n="quick_edit_profile">文档编辑</a></li>
+            <li><a class="dropdown-item" href="/profile/photos" data-i18n="quick_photos">照片</a></li>
+            <li><a class="dropdown-item" href="/dashboard" data-i18n="quick_match">佳缘</a></li>
+            <li><a class="dropdown-item" href="/profile/edit#appearance" data-i18n="quick_interests">兴趣嗜好</a></li>
+            <li><a class="dropdown-item" href="/profile/edit#basic" data-i18n="quick_personality">个性文档</a></li>
+            <li><a class="dropdown-item" href="/verification" data-i18n="quick_verify">验证文档资料</a></li>
+            <li><a class="dropdown-item" href="/safety" data-i18n="quick_imbra">IMBRA</a></li>
         </ul>
     </div>
 </div>
@@ -140,43 +141,43 @@
         <div class="modal-content">
             <div class="modal-header">
                 <div class="heart-icon">♥</div>
-                <h4 class="modal-title">描述您理想的对象来继续</h4>
-                <p class="text-muted small">回答下列有关您理想对象的条件:</p>
+                <h4 class="modal-title" data-i18n="modal_match_title">描述您理想的对象来继续</h4>
+                <p class="text-muted small" data-i18n="modal_match_subtitle">回答下列有关您理想对象的条件:</p>
             </div>
             <div class="modal-body">
                 <form>
                     <div class="mb-3">
-                        <label class="form-label">寻找:</label>
+                        <label class="form-label" data-i18n="match_seeking">寻找:</label>
                         <select class="form-select">
-                            <option>男性</option>
-                            <option>女性</option>
+                            <option data-i18n="male">男性</option>
+                            <option data-i18n="female">女性</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">年龄:</label>
+                        <label class="form-label" data-i18n="match_age">年龄:</label>
                         <div class="d-flex gap-2">
                             <select class="form-select"><option>18</option><option selected>40</option></select>
-                            <span class="align-self-center">至</span>
+                            <span class="align-self-center" data-i18n="match_to">至</span>
                             <select class="form-select"><option>50</option><option selected>65</option></select>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">居住地区:</label>
+                        <label class="form-label" data-i18n="match_location">居住地区:</label>
                         <select class="form-select">
-                            <option>任何国家</option>
+                            <option data-i18n="match_any_country">任何国家</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">是否抽烟?</label>
+                        <label class="form-label" data-i18n="match_smoking">是否抽烟?</label>
                         <div class="d-flex gap-3">
-                            <div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">不限</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label">不抽烟</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label" data-i18n="match_any">不限</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label" data-i18n="match_no_smoke">不抽烟</label></div>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-purple w-100" data-bs-dismiss="modal" style="background-color: var(--primary-purple); color: white;">保存并继续</button>
+                <button type="button" class="btn btn-purple w-100" data-bs-dismiss="modal" style="background-color: var(--primary-purple); color: white;" data-i18n="match_save_btn">保存并继续</button>
             </div>
         </div>
     </div>
@@ -250,7 +251,7 @@
                         <div class="card-body">
                             <h5 class="card-title">
                                 <a href="/member/{{ m['id'] }}" class="text-decoration-none">{{ m['name'] or ('会员'+m['id']|string) }}</a>
-                                {% if m['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                                {% if m['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                                 <small class="text-muted">{{ m['age_range'] }}</small>
                             </h5>
                             <p class="card-text small text-muted">{{ m['country'] }}</p>

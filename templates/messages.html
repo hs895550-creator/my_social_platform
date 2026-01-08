@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalAsianElite - 讯息</title>
+    <title data-i18n="messages_title">GlobalAsianElite - 讯息</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -53,14 +53,14 @@
         <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard">首页</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/messages">讯息 <span class="badge bg-danger rounded-pill">6</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="/activity">活动纪录</a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/messages"><span data-i18n="nav_messages">讯息</span> <span class="badge bg-danger rounded-pill">6</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/activity" data-i18n="nav_activity">活动纪录</a></li>
             </ul>
             <span class="navbar-text text-white">
-                欢迎, {{ user.name or '会员' }}
+                <span data-i18n="welcome_msg">欢迎</span>, {{ user.name or 'Member' }}
             </span>
-            <a href="/logout" class="btn btn-outline-light btn-sm ms-3">退出</a>
+            <a href="/logout" class="btn btn-outline-light btn-sm ms-3" data-i18n="logout_btn">退出</a>
         </div>
     </div>
 </nav>
@@ -71,14 +71,14 @@
         <div class="col-md-3">
             <div class="card mb-3">
                 <div class="card-body">
-                    <h6 class="card-title text-muted mb-3 text-uppercase small fw-bold">信箱文件夹</h6>
+                    <h6 class="card-title text-muted mb-3 text-uppercase small fw-bold" data-i18n="mailbox_folders">信箱文件夹</h6>
                     <div class="list-group list-group-flush">
                         <a href="#" class="list-group-item list-group-item-action active border-0 rounded ps-2 fw-bold text-primary bg-light">
-                            收件箱 <span class="badge bg-danger float-end rounded-pill">6</span>
+                            <span data-i18n="inbox">收件箱</span> <span class="badge bg-danger float-end rounded-pill">6</span>
                         </a>
-                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2">已发送</a>
-                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2">垃圾箱</a>
-                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2">黑名单</a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2" data-i18n="sent">已发送</a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2" data-i18n="trash">垃圾箱</a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 ps-2" data-i18n="blacklist">黑名单</a>
                     </div>
                 </div>
             </div>
@@ -89,12 +89,12 @@
                     <img src="{{ user.avatar_path }}" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
                     {% else %}
                     <div class="bg-secondary rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; color: white; font-size: 1.5rem;">
-                        {{ user.name[0] if user.name else '用' }}
+                        {{ user.name[0] if user.name else 'M' }}
                     </div>
                     {% endif %}
-                    <h6 class="card-title">{{ user.name or '未设置昵称' }}</h6>
+                    <h6 class="card-title">{% if user.name %}{{ user.name }}{% else %}<span data-i18n="no_nickname">未设置昵称</span>{% endif %}</h6>
                     <div class="d-grid gap-2 mt-3">
-                         <a href="/profile/edit" class="btn btn-outline-secondary btn-sm">编辑资料</a>
+                         <a href="/profile/edit" class="btn btn-outline-secondary btn-sm" data-i18n="edit_profile_btn">编辑资料</a>
                     </div>
                 </div>
             </div>
@@ -104,9 +104,9 @@
         <div class="col-md-9">
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">收件箱 (6)</h5>
+                    <h5 class="mb-0"><span data-i18n="inbox">收件箱</span> (6)</h5>
                     <div class="btn-group">
-                         <button class="btn btn-outline-secondary btn-sm">全部标记为已读</button>
+                         <button class="btn btn-outline-secondary btn-sm" data-i18n="mark_all_read">全部标记为已读</button>
                     </div>
                 </div>
                 <div class="list-group list-group-flush">
@@ -116,20 +116,26 @@
                             {% if m['avatar_path'] %}
                             <img src="{{ m['avatar_path'] }}" class="rounded-circle" style="width:50px;height:50px;object-fit:cover;">
                             {% else %}
-                            <div class="avatar-placeholder">{{ (m['name'] or '会员')[:1] }}</div>
+                            <div class="avatar-placeholder">{{ (m['name'] or 'M')[:1] }}</div>
                         {% endif %}
                         </div>
                         <div class="flex-grow-1">
                             <div class="d-flex justify-content-between align-items-baseline">
                                 <h6 class="mb-1 {{ 'text-primary' if last_msgs[m['id']] and last_msgs[m['id']][2] != user.id else 'text-dark' }}">
-                                    <a href="/member/{{ m['id'] }}" class="text-decoration-none">{{ m['name'] or '会员' }}</a>
-                                    {% if m['is_ai'] %}<span class="badge bg-info ms-2">系统助手</span>{% endif %}
-                                    {% if m['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                                    <span class="text-decoration-none">{% if m['name'] %}{{ m['name'] }}{% else %}<span data-i18n="member_default">会员</span>{% endif %}</span>
+                                    {% if m['is_ai'] %}<span class="badge bg-info ms-2" data-i18n="ai_badge">系统助手</span>{% endif %}
+                                    {% if m['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                                     <small class="text-muted fw-normal ms-2">{{ m['country'] }}</small>
                                 </h6>
-                                <small class="text-muted"><a href="/chat/{{ m['id'] }}">聊天</a></small>
+                                <small class="text-muted"><span data-i18n="activity_chat_btn">聊天</span></small>
                             </div>
-                            <p class="mb-0 message-content text-truncate" style="max-width: 500px;">{{ (last_msgs[m['id']][0] if last_msgs[m['id']] else '开始对话') }}</p>
+                            <p class="mb-0 message-content text-truncate" style="max-width: 500px;">
+                                {% if last_msgs[m['id']] %}
+                                    {{ last_msgs[m['id']][0] }}
+                                {% else %}
+                                    <span data-i18n="start_conversation">开始对话</span>
+                                {% endif %}
+                            </p>
                         </div>
                     </a>
                     {% endfor %}
@@ -137,11 +143,11 @@
                 <div class="card-footer bg-white text-center py-3">
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center mb-0">
-                            <li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>
+                            <li class="page-item disabled"><a class="page-link" href="#" data-i18n="prev_page">上一页</a></li>
                             <li class="page-item active"><a class="page-link" href="#">1</a></li>
                             <li class="page-item"><a class="page-link" href="#">2</a></li>
                             <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">下一页</a></li>
+                            <li class="page-item"><a class="page-link" href="#" data-i18n="next_page">下一页</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -151,5 +157,12 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/translations.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const lang = localStorage.getItem('lang') || 'zh';
+        applyLanguage(lang);
+    });
+</script>
 </body>
 </html>

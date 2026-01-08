@@ -3,92 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>完善资料 - MySocial</title>
+    <title data-i18n="verify_page_title">身份与资产认证 - GlobalAsianElite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-purple: #5e3a6e;
+            --primary-purple-dark: #4a2e56;
+        }
         body {
-            background: #f8f9fa;
+            background: #f5f5f5;
             padding-top: 50px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .upload-card {
             background: white;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 700px;
             margin: 0 auto;
+            border-top: 5px solid var(--primary-purple);
+        }
+        .section-title {
+            color: var(--primary-purple);
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+        .btn-purple {
+            background-color: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .btn-purple:hover {
+            background-color: var(--primary-purple-dark);
+            color: white;
         }
         .privacy-notice {
-            background-color: #e9ecef;
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
             padding: 15px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: #495057;
+            border-radius: 4px;
             margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .requirement-notice {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="container mb-5">
     <div class="upload-card">
-        <h3 class="text-center mb-4">欢迎加入！请完善您的资料</h3>
+        <h2 class="text-center mb-4" style="color: var(--primary-purple);" data-i18n="verify_heading">认证您的账户</h2>
+        <p class="text-center text-muted mb-5" data-i18n="verify_subheading">为确保 GlobalAsianElite 社区的高端与真实，所有新注册会员必须完成以下两项认证方可激活账户。</p>
         
         <form action="/verify" method="post" enctype="multipart/form-data">
             
-            <!-- 头像上传 -->
+            <h4 class="section-title" data-i18n="verify_step1_title">1. 实名身份认证</h4>
+            <div class="privacy-notice">
+                <strong data-i18n="verify_privacy_title">🔒 隐私承诺：</strong><br>
+                <span data-i18n="verify_privacy_desc">您上传的证件仅用于人工核实身份真实性。审核通过后，系统将自动模糊处理并加密存储。绝对不会在个人主页公开展示。</span>
+            </div>
             <div class="mb-4">
-                <label class="form-label fw-bold">1. 上传个人头像 (公开)</label>
-                <div class="input-group">
-                    <input type="file" class="form-control" name="avatar" accept="image/*">
-                </div>
-                <div class="form-text">请上传清晰的本人照片，这将展示在您的个人主页。</div>
+                <label class="form-label fw-bold" data-i18n="verify_id_label">上传护照或身份证正面</label>
+                <input type="file" class="form-control" name="id_card" accept="image/*" required>
+                <div class="form-text" data-i18n="verify_id_help">请确保证件文字清晰可见，无遮挡。</div>
             </div>
 
-            <hr>
-
-            <!-- 实名认证 -->
+            <h4 class="section-title" data-i18n="verify_step2_title">2. 资产/收入证明</h4>
+            <div class="requirement-notice">
+                <strong data-i18n="verify_asset_notice_title">💎 门槛说明：</strong><br>
+                <span data-i18n="verify_asset_notice_desc">GlobalAsianElite 是一个高净值社交圈。我们需要确认您具备相应的经济实力，以匹配社区内的其他精英会员。</span>
+            </div>
             <div class="mb-4">
-                <label class="form-label fw-bold">2. 实名认证 (隐私加密)</label>
-                
-                <div class="privacy-notice">
-                    <i class="bi bi-shield-lock"></i> 
-                    <strong>隐私安全承诺：</strong><br>
-                    您上传的证件照仅用于后台人工审核，审核完成后系统将进行加密存储或定期清理。
-                    <span class="text-danger">证件照片绝不会对外公开展示。</span>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">上传身份证/护照正面照</label>
-                    <input type="file" class="form-control" name="id_card" accept="image/*" required>
+                <label class="form-label fw-bold" data-i18n="verify_asset_label">上传资产证明材料</label>
+                <input type="file" class="form-control" name="asset_proof" accept="image/*,application/pdf" required>
+                <div class="form-text" data-i18n="verify_asset_help">
+                    支持类型：银行月度对账单、投资账户截图、房产证、高额纳税证明等。（建议隐去账号等敏感数字，仅保留姓名和总额）
                 </div>
             </div>
 
-            <hr>
-
-            <!-- 资质审核 -->
+            <h4 class="section-title" data-i18n="verify_step3_title">3. 个人头像 (公开)</h4>
             <div class="mb-4">
-                <label class="form-label fw-bold">3. 资质审核 (收支证明)</label>
-                
-                <div class="alert alert-warning">
-                    <i class="bi bi-award"></i>
-                    <strong>为了提供良好的优质伴侣，请提供良好的收支证明。</strong>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">上传资产证明/银行流水/收入证明</label>
-                    <input type="file" class="form-control" name="asset_proof" accept="image/*,application/pdf" required>
-                    <div class="form-text">支持图片或PDF格式。审核通过后将获得“优质会员”认证标识。</div>
-                </div>
+                <label class="form-label fw-bold" data-i18n="verify_avatar_label">上传一张展现您魅力的照片</label>
+                <input type="file" class="form-control" name="avatar" accept="image/*" required>
+                <div class="form-text" data-i18n="verify_avatar_help">这是其他会员认识您的第一窗口，请上传清晰的本人生活照或职业照。</div>
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">提交审核</button>
+            <div class="d-grid gap-2 mt-5">
+                <button type="submit" class="btn btn-purple" data-i18n="verify_submit_btn">提交审核资料</button>
             </div>
         </form>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/translations.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyLanguage();
+    });
+</script>
 </body>
 </html>

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>活动记录 - GlobalAsianElite</title>
+    <title data-i18n="activity_title">活动记录 - GlobalAsianElite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/js/translations.js"></script>
     <style>
         :root { --primary-purple: #5e3a6e; }
         .navbar { background-color: var(--primary-purple); }
@@ -17,11 +18,14 @@
 <nav class="navbar navbar-expand-lg mb-4">
     <div class="container">
         <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
-        <div class="collapse navbar-collapse">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="/dashboard">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/messages">讯息</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/activity">活动记录 <span class="badge bg-secondary rounded-pill">{{ counts['likes'] + counts['favorites'] + counts['views'] + counts['blocks'] }}</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
+                <li class="nav-item"><a class="nav-link" href="/messages" data-i18n="nav_messages">讯息</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/activity" data-i18n="nav_activity">活动记录 <span class="badge bg-secondary rounded-pill">{{ counts['likes'] + counts['favorites'] + counts['views'] + counts['blocks'] }}</span></a></li>
             </ul>
         </div>
     </div>
@@ -31,15 +35,29 @@
     <div class="row">
         <div class="col-md-3">
             <div class="list-group side-menu">
-                <a href="/activity?type=likes" class="list-group-item list-group-item-action {{ 'active' if type=='likes' else '' }}">喜欢 <span class="badge rounded-pill bg-secondary">{{ counts['likes'] }}</span></a>
-                <a href="/activity?type=favorites" class="list-group-item list-group-item-action {{ 'active' if type=='favorites' else '' }}">我的最爱 <span class="badge rounded-pill bg-secondary">{{ counts['favorites'] }}</span></a>
-                <a href="/activity?type=views" class="list-group-item list-group-item-action {{ 'active' if type=='views' else '' }}">文档浏览 <span class="badge rounded-pill bg-secondary">{{ counts['views'] }}</span></a>
-                <a href="/activity?type=blocks" class="list-group-item list-group-item-action {{ 'active' if type=='blocks' else '' }}">封锁清单 <span class="badge rounded-pill bg-secondary">{{ counts['blocks'] }}</span></a>
+                <a href="/activity?type=likes" class="list-group-item list-group-item-action {{ 'active' if type=='likes' else '' }}">
+                    <span data-i18n="activity_likes">喜欢</span> 
+                    <span class="badge rounded-pill bg-secondary">{{ counts['likes'] }}</span>
+                </a>
+                <a href="/activity?type=favorites" class="list-group-item list-group-item-action {{ 'active' if type=='favorites' else '' }}">
+                    <span data-i18n="activity_favorites">我的最爱</span>
+                    <span class="badge rounded-pill bg-secondary">{{ counts['favorites'] }}</span>
+                </a>
+                <a href="/activity?type=views" class="list-group-item list-group-item-action {{ 'active' if type=='views' else '' }}">
+                    <span data-i18n="activity_views">文档浏览</span>
+                    <span class="badge rounded-pill bg-secondary">{{ counts['views'] }}</span>
+                </a>
+                <a href="/activity?type=blocks" class="list-group-item list-group-item-action {{ 'active' if type=='blocks' else '' }}">
+                    <span data-i18n="activity_blocks">封锁清单</span>
+                    <span class="badge rounded-pill bg-secondary">{{ counts['blocks'] }}</span>
+                </a>
             </div>
         </div>
         <div class="col-md-9">
             <div class="card">
-                <div class="card-header bg-white">{{ '喜欢' if type=='likes' else ('我的最爱' if type=='favorites' else ('文档浏览' if type=='views' else '封锁清单')) }}</div>
+                <div class="card-header bg-white" data-i18n="activity_{{ type }}">
+                    {{ '喜欢' if type=='likes' else ('我的最爱' if type=='favorites' else ('文档浏览' if type=='views' else '封锁清单')) }}
+                </div>
                 <div class="list-group list-group-flush">
                     {% if items and items|length > 0 %}
                         {% for u in items %}
@@ -47,26 +65,26 @@
                             {% if u['avatar_path'] %}
                             <img src="{{ u['avatar_path'] }}" class="avatar me-3" alt="头像">
                             {% else %}
-                            <div class="avatar me-3">{{ (u['name'] or '会员')[:1] }}</div>
+                            <div class="avatar me-3" data-i18n="member_default">{{ (u['name'] or '会员')[:1] }}</div>
                             {% endif %}
                             <div class="flex-grow-1">
                                 <a href="/member/{{ u['id'] }}" class="text-decoration-none">{{ u['name'] or '会员' }}</a>
-                                {% if u['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                                {% if u['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                                 <small class="text-muted ms-2">{{ u['country'] }}</small>
                             </div>
                             <div class="d-flex gap-2">
                                 {% if type=='favorites' %}
-                                <form action="/favorite/{{ u['id'] }}/remove" method="post"><button class="btn btn-sm btn-outline-secondary" type="submit">移除最爱</button></form>
+                                <form action="/favorite/{{ u['id'] }}/remove" method="post"><button class="btn btn-sm btn-outline-secondary" type="submit" data-i18n="activity_remove_favorite">移除最爱</button></form>
                                 {% elif type=='blocks' %}
-                                <form action="/block/{{ u['id'] }}/remove" method="post"><button class="btn btn-sm btn-outline-secondary" type="submit">取消封锁</button></form>
+                                <form action="/block/{{ u['id'] }}/remove" method="post"><button class="btn btn-sm btn-outline-secondary" type="submit" data-i18n="activity_remove_block">取消封锁</button></form>
                                 {% else %}
-                                <a href="/chat/{{ u['id'] }}" class="btn btn-sm btn-outline-primary">聊天</a>
+                                <a href="/chat/{{ u['id'] }}" class="btn btn-sm btn-outline-primary" data-i18n="activity_chat_btn">聊天</a>
                                 {% endif %}
                             </div>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="list-group-item text-muted">暂无记录</div>
+                        <div class="list-group-item text-muted" data-i18n="activity_no_record">暂无记录</div>
                     {% endif %}
                 </div>
             </div>
@@ -75,5 +93,10 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyLanguage();
+    });
+</script>
 </body>
 </html>

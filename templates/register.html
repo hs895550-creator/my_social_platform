@@ -6,6 +6,7 @@
     <title data-i18n="register_title">注册 - MySocial</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="/static/style.css" rel="stylesheet">
+    <script src="/static/js/country_codes.js"></script>
     <script src="/static/js/translations.js"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center h-screen relative">
@@ -132,23 +133,6 @@
         function changeLanguage(lang) {
             localStorage.setItem('lang', lang);
             applyLanguage(lang);
-        }
-
-        function applyLanguage(lang) {
-            if (!translations[lang]) lang = 'en';
-            const t = translations[lang];
-            
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key]) el.innerText = t[key];
-            });
-
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                const key = el.getAttribute('data-i18n-placeholder');
-                if (t[key]) el.placeholder = t[key];
-            });
-            
-            if (t.register_title) document.title = t.register_title;
         }
     </script>
 </body>
