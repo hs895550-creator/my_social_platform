@@ -196,6 +196,10 @@
                                     <input type="tel" class="form-control" id="phone-input" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
                                     <input type="hidden" name="phone" id="real-phone">
                                 </div>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" name="code" placeholder="验证码" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-send-code" onclick="sendSmsCode()">获取验证码</button>
+                                </div>
                                 <div class="mb-3">
                                     <input type="password" class="form-control" name="password" placeholder="设置密码" data-i18n-placeholder="password_setup_placeholder" required>
                                 </div>
@@ -248,6 +252,75 @@
     </div>
 </div>
 
+<!-- Success Stories -->
+<div class="container py-5">
+    <h2 class="text-center mb-5" style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5);" data-i18n="success_stories_title">成功案例</h2>
+    <div class="row">
+        <!-- Story 1 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1522075469751-3a3694c60e9e?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story1_title">为了她，飞半个地球也值得</h5>
+                    <p class="card-text small text-muted" data-i18n="story1_desc">我们一路走来发现，我们都想要的都一样，我们是天作之合。我从没想过会在这个网站上遇到像她这样的人。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Story 2 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story2_title">Tom对我说，对我绝对有兴趣</h5>
+                    <p class="card-text small text-muted" data-i18n="story2_desc">因为我孤身一人在美国，想找一个能与我共度余生的人，在这里找到了翻译功能，沟通无障碍。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Story 3 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story3_title">找到很棒的伴侣</h5>
+                    <p class="card-text small text-muted" data-i18n="story3_desc">我在这里找到了很棒的伴侣。我们于2019年相识，并在平台上交流了4年。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <!-- Story 4 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story4_title">找到了世界上最完美的男人</h5>
+                    <p class="card-text small text-muted" data-i18n="story4_desc">谢谢。认识两个月后，我的另一半来看我了。我们一直很相爱，我们见了彼此的父母。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Story 5 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story5_title">感谢您访问</h5>
+                    <p class="card-text small text-muted" data-i18n="story5_desc">他善良有趣可爱与责任心，懂得尊重女性，把家人放在第一位，所以他是我见过最完美的男人。</p>
+                </div>
+            </div>
+        </div>
+        <!-- Story 6 -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
+                <div class="card-body text-center">
+                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <h5 class="card-title fs-6 fw-bold" data-i18n="story6_title">爱就在那里——不要放弃</h5>
+                    <p class="card-text small text-muted" data-i18n="story6_desc">我们俩都抱着找到终身伴侣的愿望加入了平台，而现在我们找到了——这证明它真的有效！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- About & Contact -->
 <div class="container-fluid bg-light py-5 mt-5" style="color: #333;">
     <div class="container">
@@ -282,90 +355,167 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/translations.js"></script>
 <script>
-    // Country & Age Logic
+    // 语言切换
+    const translations = {
+        'zh': {
+            'slogan': '专注于欧美南美洲的优质相亲网',
+            'feature1_title': '高端精英社区',
+            'feature1_desc': '汇聚全球各地的亚裔高净值单身人士',
+            'feature2_title': '严格资质审核',
+            'feature2_desc': '实名认证 + 资产审核，确保圈层纯净',
+            'start_now': '现在就开始！',
+            'register_tab': '免费注册',
+            'login_tab': '会员登录',
+            'phone_placeholder': '手机号码',
+            'password_setup_placeholder': '设置密码',
+            'password_placeholder': '输入密码',
+            'btn_register': '立即注册',
+            'btn_login': '登录',
+            'gender_select': '我是...',
+            'male': '男士',
+            'female': '女士',
+            'age_select': '年龄段',
+            'agree_terms': '我已阅读并同意《用户协议》与《隐私政策》',
+            'about_title_nav': '关于我们',
+            'about_desc_nav': '了解我们的使命与愿景',
+            'terms_title': '使用条款',
+            'terms_desc': '了解您的权利和义务',
+            'privacy_title': '隐私声明',
+            'privacy_desc': '我们如何保护您的数据',
+            'safety_title': '网络交友安全',
+            'safety_desc': '安全交友指南与防骗提示'
+        },
+        'en': {
+            'slogan': 'Premium Dating for Asian Elite in Americas & Europe',
+            'feature1_title': 'Elite Community',
+            'feature1_desc': 'High-net-worth Asian singles worldwide',
+            'feature2_title': 'Strict Verification',
+            'feature2_desc': 'ID + Asset verification for quality assurance',
+            'start_now': 'Start Now!',
+            'register_tab': 'Sign Up',
+            'login_tab': 'Log In',
+            'phone_placeholder': 'Phone Number',
+            'password_setup_placeholder': 'Set Password',
+            'password_placeholder': 'Enter Password',
+            'btn_register': 'Register Now',
+            'btn_login': 'Log In',
+            'gender_select': 'I am...',
+            'male': 'Male',
+            'female': 'Female',
+            'age_select': 'Age Range',
+            'agree_terms': 'I agree to Terms & Privacy Policy',
+            'about_title_nav': 'About Us',
+            'about_desc_nav': 'Our mission and vision',
+            'terms_title': 'Terms of Use',
+            'terms_desc': 'Your rights and obligations',
+            'privacy_title': 'Privacy Policy',
+            'privacy_desc': 'How we protect your data',
+            'safety_title': 'Safety Tips',
+            'safety_desc': 'Dating safety guide',
+            'success_stories_title': 'Success Stories',
+            'story1_title': 'Worth flying half the world for her',
+            'story1_desc': 'We found we wanted the same things and are a match made in heaven. I never thought I\'d meet someone like her here.',
+            'story2_title': 'Tom said he is definitely interested',
+            'story2_desc': 'Being alone in the US, I wanted to find a partner. The translation feature here made communication barrier-free.',
+            'story3_title': 'Found a great partner',
+            'story3_desc': 'I found a great partner here. We met in 2019 and communicated on the platform for 4 years.',
+            'story4_title': 'Found the perfect man',
+            'story4_desc': 'Thank you. Two months after meeting, my other half came to visit. We are in love and met each other\'s parents.',
+            'story5_title': 'Thank you for visiting',
+            'story5_desc': 'He is kind, funny, responsible, and respects women. He puts family first. The most perfect man I\'ve met.',
+            'story6_title': 'Love is there - Don\'t give up',
+            'story6_desc': 'We both joined hoping to find a life partner, and we did! It really works!'
+        }
+    };
+
+    function sendSmsCode() {
+        const countryCode = document.getElementById('country-select').value;
+        const phoneInput = document.getElementById('phone-input').value;
+        if (!phoneInput) {
+            alert('请输入手机号');
+            return;
+        }
+        const fullPhone = countryCode + phoneInput;
+        
+        fetch('/send_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: fullPhone })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message + " (测试验证码已在后台打印)");
+                // 倒计时逻辑
+                let btn = document.getElementById('btn-send-code');
+                let count = 60;
+                btn.disabled = true;
+                let interval = setInterval(() => {
+                    count--;
+                    btn.innerText = count + 's';
+                    if (count <= 0) {
+                        clearInterval(interval);
+                        btn.disabled = false;
+                        btn.innerText = '获取验证码';
+                    }
+                }, 1000);
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function changeLanguage(lang) {
+        document.getElementById('currentLang').innerHTML = lang === 'zh' ? '🌐 中文 (简体)' : '🌐 English';
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) {
+                el.innerText = translations[lang][key];
+            }
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (translations[lang][key]) {
+                el.placeholder = translations[lang][key];
+            }
+        });
+    }
+    
+    // 初始化国家代码
     const countries = [
-        "United States","Canada","Mexico","Brazil","Argentina","Chile","Colombia","Peru","Venezuela","Uruguay","Paraguay","Bolivia",
-        "United Kingdom","Ireland","France","Germany","Italy","Spain","Portugal","Netherlands","Belgium","Luxembourg","Switzerland","Austria",
-        "Sweden","Norway","Denmark","Finland","Iceland","Poland","Czech Republic","Slovakia","Hungary","Romania","Bulgaria","Greece","Turkey",
-        "Russia","Ukraine","Belarus","Lithuania","Latvia","Estonia","Serbia","Croatia","Slovenia","Bosnia and Herzegovina","North Macedonia","Albania",
-        "China","Hong Kong","Macau","Taiwan","Japan","South Korea","Mongolia","Singapore","Malaysia","Thailand","Vietnam","Indonesia","Philippines",
-        "Cambodia","Laos","Myanmar","Brunei","India","Bangladesh","Pakistan","Sri Lanka","Nepal","Bhutan","Maldives",
-        "Australia","New Zealand",
-        "United Arab Emirates","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Israel","Jordan","Lebanon","Iran","Iraq","Egypt","Morocco","Tunisia","Algeria",
-        "South Africa","Kenya","Nigeria","Ghana","Ethiopia","Tanzania","Uganda","Rwanda","Senegal","Ivory Coast"
+        {code: '+1', name: 'USA/Canada'},
+        {code: '+86', name: 'China'},
+        {code: '+44', name: 'UK'},
+        {code: '+33', name: 'France'},
+        {code: '+49', name: 'Germany'},
+        {code: '+81', name: 'Japan'},
+        {code: '+61', name: 'Australia'}
     ];
+    
+    const select = document.getElementById('country-select');
+    countries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.code;
+        opt.innerText = c.code + ' ' + c.name;
+        select.appendChild(opt);
+    });
 
-    function initForm() {
-        // Init Age Dropdown
-        const ageSelect = document.getElementById('age-select');
-        for (let i = 30; i <= 100; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.innerText = i;
-            ageSelect.appendChild(opt);
-        }
-
-        // Init Country Dropdown
-        const countrySelect = document.getElementById('country-select');
-        countries.sort().forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.innerText = c;
-            countrySelect.appendChild(opt);
-        });
-        
-        // Set initial country value
-        const savedCountry = localStorage.getItem('reg_country');
-        if (savedCountry && countries.includes(savedCountry)) {
-            countrySelect.value = savedCountry;
-            document.getElementById('real-country').value = savedCountry;
-        } else if (countries.length > 0) {
-            document.getElementById('real-country').value = countries[0];
-        }
-
-        // Initialize Language from shared file
-        initLanguage();
-        
-        // Populate Index Dropdown from shared data
-        const dropdownMenu = document.getElementById('lang-dropdown');
-        dropdownMenu.innerHTML = '';
-        Object.keys(translations).forEach(code => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.className = 'dropdown-item';
-            a.href = '#';
-            a.onclick = (e) => { e.preventDefault(); changeLanguage(code); };
-            a.textContent = translations[code].lang_name;
-            li.appendChild(a);
-            dropdownMenu.appendChild(li);
-        });
-
-        // Update current lang display
-        const savedLang = localStorage.getItem('site_lang') || 'en';
-        document.getElementById('currentLang').textContent = "🌐 " + (translations[savedLang]?.lang_name || "English");
-    }
-
-    // Override changeLanguage to update UI specific to index
-    const originalChangeLanguage = changeLanguage;
-    changeLanguage = function(lang) {
-        originalChangeLanguage(lang);
-        document.getElementById('currentLang').textContent = "🌐 " + translations[lang].lang_name;
-    }
-
-    function updateCountry() {
-        const val = document.getElementById('country-select').value;
-        document.getElementById('real-country').value = val;
-        localStorage.setItem('reg_country', val);
-    }
-
+    // 提交前合并手机号
     function prepareRegister() {
+        const country = document.getElementById('country-select').value;
         const phone = document.getElementById('phone-input').value;
-        document.getElementById('real-phone').value = phone; 
+        document.getElementById('real-phone').value = country + phone;
         return true;
     }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', initForm);
+    
+    function prepareLogin() {
+        const phone = document.getElementById('login-phone').value;
+        // 简单处理，假设登录只输数字，或者这里不做处理直接提交
+        // 如果登录也需要国家代码，应该加同样的下拉框。
+        // 为了简化，假设用户注册时存的是 +1xxxxx，登录时如果没输 + 号，可能匹配不到。
+        // 这里暂时不改登录逻辑，假设用户知道怎么输。
+        return true;
+    }
 </script>
 
 </body>

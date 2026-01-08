@@ -60,7 +60,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">上传身份证/护照正面照</label>
-                    <input type="file" class="form-control" name="id_card" accept="image/*">
+                    <input type="file" class="form-control" name="id_card" accept="image/*" required>
                 </div>
             </div>
 
@@ -77,14 +77,13 @@
 
                 <div class="mb-3">
                     <label class="form-label">上传资产证明/银行流水/收入证明</label>
-                    <input type="file" class="form-control" name="asset_proof" accept="image/*,application/pdf">
+                    <input type="file" class="form-control" name="asset_proof" accept="image/*,application/pdf" required>
                     <div class="form-text">支持图片或PDF格式。审核通过后将获得“优质会员”认证标识。</div>
                 </div>
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">提交并进入大厅</button>
-                <a href="/dashboard" class="btn btn-link text-muted">跳过，稍后再说</a>
+                <button type="submit" class="btn btn-primary btn-lg">提交审核</button>
             </div>
         </form>
     </div>

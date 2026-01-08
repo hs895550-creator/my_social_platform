@@ -18,9 +18,13 @@ UPLOAD_DIR = "static/uploads"
 PRIVATE_UPLOAD_DIR = "private_uploads"
 ADMIN_PASSWORD = "admin"  # 简单演示用管理员密码
 
+# 模拟短信验证码存储 {phone: code}
+SMS_CODES = {}
+
 # 确保上传目录存在
 os.makedirs(f"{UPLOAD_DIR}/avatars", exist_ok=True)
 os.makedirs(f"{PRIVATE_UPLOAD_DIR}/id_cards", exist_ok=True)
+os.makedirs(f"{PRIVATE_UPLOAD_DIR}/assets", exist_ok=True)
 
 # 挂载静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -60,6 +64,7 @@ async def init_db():
                 match_age_min INTEGER,
                 match_age_max INTEGER,
                 asset_proof_path TEXT,
+                status TEXT DEFAULT 'pending_upload', -- pending_upload, pending_approval, active, rejected
                 is_ai BOOLEAN DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -135,7 +140,8 @@ async def init_db():
             "hair_color TEXT", "eye_color TEXT", "height TEXT", "weight TEXT",
             "marital_status TEXT", "smoking TEXT", "match_gender TEXT",
             "match_age_min INTEGER", "match_age_max INTEGER",
-            "asset_proof_path TEXT", "is_ai BOOLEAN DEFAULT 0", "last_active_at TIMESTAMP"
+            "asset_proof_path TEXT", "is_ai BOOLEAN DEFAULT 0", "last_active_at TIMESTAMP",
+            "status TEXT DEFAULT 'pending_upload'"
         ]
         
         for col in new_columns:
@@ -161,7 +167,7 @@ async def startup():
             bot = await cursor.fetchone()
         if not bot:
             await db.execute(
-                "INSERT INTO users (phone, password, gender, age_range, country, name, is_verified, is_ai) VALUES (?, ?, ?, ?, ?, ?, ?, 1)",
+                "INSERT INTO users (phone, password, gender, age_range, country, name, is_verified, is_ai, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'active')",
                 ("BOT", "bot", None, None, None, "系统助手", 1)
             )
             await db.commit()
@@ -207,6 +213,17 @@ async def register(
             "error": "必须同意《用户协议》与《隐私政策》才能注册。",
             "active_tab": "register"
         })
+
+    # 验证短信验证码
+    if SMS_CODES.get(phone) != code:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "error": "验证码错误或已失效。",
+            "active_tab": "register"
+        })
+
+    # 验证通过后清除验证码
+    SMS_CODES.pop(phone, None)
 
     try:
         ip = get_client_ip(request)
@@ -407,6 +424,16 @@ async def verify(
         return RedirectResponse(url="/profile/photos?uploaded=1", status_code=303)
     return RedirectResponse(url="/dashboard", status_code=303)
 
+@app.post("/photo/delete")
+async def photo_delete(request: Request, photo_id: int = Form(...)):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return RedirectResponse(url="/", status_code=303)
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("DELETE FROM user_photos WHERE id = ? AND user_id = ?", (photo_id, user_id))
+        await db.commit()
+    return RedirectResponse(url="/profile/photos", status_code=303)
+
 @app.post("/photo/upload")
 async def photo_upload(request: Request, photo: UploadFile = File(...)):
     user_id = request.session.get("user_id")
@@ -477,12 +504,48 @@ async def member_page(request: Request, member_id: int):
             await db.commit()
     return templates.TemplateResponse("member.html", {"request": request, "member": member})
 
-@app.get("/profile/showProfile/ID/{member_id}")
-async def legacy_profile_redirect(request: Request, member_id: int, searchposition: int | None = None, searchtotal: int | None = None):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse(url="/", status_code=303)
-    return RedirectResponse(url=f"/member/{member_id}", status_code=303)
+@app.get("/admin/users", response_class=HTMLResponse)
+async def admin_users(request: Request):
+    # 简易鉴权：检查 Cookie 或 Session 中是否有 admin 标记，或者在这里做个简单密码验证
+    # 为了演示方便，假设访问此 URL 需要输入密码，或者我们检查 session["is_admin"]
+    if not request.session.get("is_admin"):
+        return templates.TemplateResponse("admin_login.html", {"request": request})
+    
+    async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM users WHERE status = 'pending_approval' ORDER BY created_at DESC") as cursor:
+            pending_users = await cursor.fetchall()
+            
+    return templates.TemplateResponse("admin_dashboard.html", {"request": request, "users": pending_users})
+
+@app.post("/admin/login")
+async def admin_login(request: Request, password: str = Form(...)):
+    if password == ADMIN_PASSWORD:
+        request.session["is_admin"] = True
+        return RedirectResponse(url="/admin/users", status_code=303)
+    return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误"})
+
+@app.post("/admin/approve/{user_id}")
+async def admin_approve(request: Request, user_id: int):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url="/admin/users", status_code=303)
+        
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?", (user_id,))
+        await db.commit()
+        
+    return RedirectResponse(url="/admin/users", status_code=303)
+
+@app.post("/admin/reject/{user_id}")
+async def admin_reject(request: Request, user_id: int):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url="/admin/users", status_code=303)
+        
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("UPDATE users SET status = 'rejected' WHERE id = ?", (user_id,))
+        await db.commit()
+        
+    return RedirectResponse(url="/admin/users", status_code=303)
 
 @app.get("/chat/{peer_id}", response_class=HTMLResponse)
 async def chat_page(request: Request, peer_id: int):
@@ -810,18 +873,26 @@ async def admin_login(request: Request, password: str = Form(...)):
     return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误"})
 
 @app.get("/admin/dashboard", response_class=HTMLResponse)
-async def admin_dashboard(request: Request):
+async def admin_dashboard(request: Request, status: str = "pending_approval"):
     if not request.session.get("is_admin"):
         return RedirectResponse(url="/admin/login")
         
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
-        async with db.execute("SELECT * FROM users ORDER BY id DESC") as cursor:
+        if status == "all":
+            query = "SELECT * FROM users ORDER BY id DESC"
+            params = ()
+        else:
+            query = "SELECT * FROM users WHERE status = ? ORDER BY created_at DESC"
+            params = (status,)
+            
+        async with db.execute(query, params) as cursor:
             users = await cursor.fetchall()
             
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
-        "users": users
+        "users": users,
+        "current_status": status
     })
 
 @app.post("/admin/verify/{user_id}")
@@ -835,25 +906,17 @@ async def admin_verify_user(request: Request, user_id: int):
         
     return RedirectResponse(url="/admin/dashboard", status_code=303)
 
-@app.get("/admin/private_image/{filename}")
-async def get_private_image(request: Request, filename: str):
+@app.get("/private_uploads/{category}/{filename}")
+async def get_private_file(request: Request, category: str, filename: str):
     # 安全检查：只有管理员能访问
     if not request.session.get("is_admin"):
         raise HTTPException(status_code=403, detail="未授权访问")
     
-    file_path = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="文件不存在")
-        
-    return FileResponse(file_path)
+    # 防止路径遍历
+    if ".." in category or ".." in filename:
+        raise HTTPException(status_code=400, detail="Invalid path")
 
-@app.get("/admin/asset_image/{filename}")
-async def get_asset_image(request: Request, filename: str):
-    # 安全检查：只有管理员能访问
-    if not request.session.get("is_admin"):
-        raise HTTPException(status_code=403, detail="未授权访问")
-    
-    file_path = f"{PRIVATE_UPLOAD_DIR}/assets/{filename}"
+    file_path = os.path.join(PRIVATE_UPLOAD_DIR, category, filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="文件不存在")
         
