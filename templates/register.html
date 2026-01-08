@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - MySocial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-pink-600">MySocial</h1>
+            <p class="text-gray-500">寻找您的完美匹配</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/register" method="post" class="space-y-4">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">我是</label>
+                <select name="gender" class="w-full border rounded px-3 py-2">
+                    <option value="Male">男士</option>
+                    <option value="Female">女士</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">年龄段</label>
+                <select name="age_group" class="w-full border rounded px-3 py-2">
+                    <option value="18-25">18 - 25</option>
+                    <option value="26-35">26 - 35</option>
+                    <option value="36-50">36 - 50</option>
+                    <option value="50+">50以上</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">国家/地区</label>
+                <input type="text" name="country" placeholder="例如：China, USA" class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">手机号</label>
+                <input type="tel" name="phone" class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                <input type="password" name="password" class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <!-- 合规核心：强制勾选 -->
+            <div class="flex items-start">
+                <input type="checkbox" name="agreed" value="true" class="mt-1 mr-2" required>
+                <label class="text-sm text-gray-600">
+                    我已阅读并同意 
+                    <a href="/terms" target="_blank" class="text-pink-600 underline">《用户协议》</a> 与 
+                    <a href="/terms" target="_blank" class="text-pink-600 underline">《隐私政策》</a>。
+                    我承诺填写真实信息。
+                </label>
+            </div>
+
+            <button type="submit" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded transition duration-300">
+                查看单身会员
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <p class="text-sm text-gray-600">已有账号？ <a href="/login" class="text-pink-600 font-bold">在此登录</a></p>
+        </div>
+    </div>
+</body>
+</html>

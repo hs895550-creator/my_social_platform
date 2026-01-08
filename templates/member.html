@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会员资料 - GlobalAsianElite</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-purple: #5e3a6e; }
+        body { background-color: #f0f2f5; }
+        .navbar { background-color: var(--primary-purple); }
+        .navbar-brand, .nav-link { color: white !important; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/dashboard">GlobalAsianElite</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard">首页</a></li>
+                <li class="nav-item"><a class="nav-link" href="/messages">讯息</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if member['avatar_path'] %}
+                    <img src="{{ member['avatar_path'] }}" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                    {% else %}
+                    <div class="rounded-circle mx-auto mb-3 bg-secondary text-white d-flex align-items-center justify-content-center" style="width:120px;height:120px;">
+                        {{ (member['name'] or '会员')[0] }}
+                    </div>
+                    {% endif %}
+                    <h4 class="mb-2">
+                        {{ member['name'] or ('会员'+member['id']|string) }}
+                        {% if member['is_ai'] %}<span class="badge bg-info ms-2">系统助手</span>{% endif %}
+                        {% if member['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                    </h4>
+                    <div class="text-muted">{{ member['gender'] }} • {{ member['age_range'] }}</div>
+                    <div class="text-muted">{{ member['city'] }} {{ member['country'] }}</div>
+                    <div class="d-grid gap-2 mt-3">
+                        <form action="/like/{{ member['id'] }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-light">❤ 点赞</button>
+                        </form>
+                        <form action="/favorite/{{ member['id'] }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-secondary">☆ 加入最爱</button>
+                        </form>
+                        <form action="/block/{{ member['id'] }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-danger">封锁</button>
+                        </form>
+                        <a href="/chat/{{ member['id'] }}" class="btn btn-primary">发私信</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-white">简介</div>
+                <div class="card-body">
+                    <p class="text-muted">该会员尚未填写更多资料。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

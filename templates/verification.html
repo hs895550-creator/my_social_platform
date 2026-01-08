@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完善资料 - MySocial</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            padding-top: 50px;
+        }
+        .upload-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .privacy-notice {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #495057;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="upload-card">
+        <h3 class="text-center mb-4">欢迎加入！请完善您的资料</h3>
+        
+        <form action="/verify" method="post" enctype="multipart/form-data">
+            
+            <!-- 头像上传 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">1. 上传个人头像 (公开)</label>
+                <div class="input-group">
+                    <input type="file" class="form-control" name="avatar" accept="image/*">
+                </div>
+                <div class="form-text">请上传清晰的本人照片，这将展示在您的个人主页。</div>
+            </div>
+
+            <hr>
+
+            <!-- 实名认证 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">2. 实名认证 (隐私加密)</label>
+                
+                <div class="privacy-notice">
+                    <i class="bi bi-shield-lock"></i> 
+                    <strong>隐私安全承诺：</strong><br>
+                    您上传的证件照仅用于后台人工审核，审核完成后系统将进行加密存储或定期清理。
+                    <span class="text-danger">证件照片绝不会对外公开展示。</span>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">上传身份证/护照正面照</label>
+                    <input type="file" class="form-control" name="id_card" accept="image/*">
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- 资质审核 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">3. 资质审核 (收支证明)</label>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-award"></i>
+                    <strong>为了提供良好的优质伴侣，请提供良好的收支证明。</strong>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">上传资产证明/银行流水/收入证明</label>
+                    <input type="file" class="form-control" name="asset_proof" accept="image/*,application/pdf">
+                    <div class="form-text">支持图片或PDF格式。审核通过后将获得“优质会员”认证标识。</div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">提交并进入大厅</button>
+                <a href="/dashboard" class="btn btn-link text-muted">跳过，稍后再说</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

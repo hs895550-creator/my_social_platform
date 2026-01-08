@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalAsianElite - 全球亚裔精英相亲 (Updated)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #5e3a6e;
+            --primary-purple-dark: #4a2e56;
+            --primary-bg: #f5f5f5;
+        }
+        body {
+            /* 替换为温馨的男女合照背景，使用 Unsplash 高清源 */
+            background: linear-gradient(rgba(74, 46, 86, 0.8), rgba(44, 26, 51, 0.9)), 
+                        url('https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=2459&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: rgba(0,0,0,0.2);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .main-container {
+            margin-top: 80px;
+        }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .auth-header {
+            background-color: var(--primary-purple);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .nav-tabs .nav-link {
+            color: #666;
+            border: none;
+            border-bottom: 3px solid transparent;
+        }
+        .nav-tabs .nav-link.active {
+            color: var(--primary-purple);
+            border-bottom: 3px solid var(--primary-purple);
+            background: transparent;
+            font-weight: bold;
+        }
+        .btn-purple {
+            background-color: var(--primary-purple);
+            color: white;
+            border: none;
+        }
+        .btn-purple:hover {
+            background-color: var(--primary-purple-dark);
+            color: white;
+        }
+        .feature-list {
+            color: white;
+            margin-top: 50px;
+        }
+        .feature-list h2 {
+            font-weight: 300;
+            margin-bottom: 30px;
+        }
+        .feature-item {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #ffd700;
+        }
+        .lang-switch {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        .lang-switch:hover {
+            opacity: 1;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-gem me-2" viewBox="0 0 16 16">
+                <path d="M3.1.7a.5.5 0 0 1 .4-.2h9a.5.5 0 0 1 .4.2l2.976 3.974c.149.185.156.45.01.644L8.4 15.3a.5.5 0 0 1-.8 0L.1 5.3a.5.5 0 0 1 .01-.644L3.1.7z"/>
+            </svg>
+            GlobalAsianElite
+        </a>
+        <div class="ms-auto">
+            <div class="dropdown">
+                <a class="lang-switch dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="currentLang">
+                    🌐 中文 (简体)
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" id="lang-dropdown">
+                    <!-- JS populated -->
+                    <li><a class="dropdown-item" href="#" onclick="changeLanguage('zh')">中文 (简体)</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container main-container">
+    <div class="row justify-content-center align-items-center">
+        <!-- 左侧宣传语 -->
+        <div class="col-md-6 d-none d-md-block feature-list">
+            <h2 data-i18n="slogan">专注于欧美南美洲的优质相亲网</h2>
+            <div class="feature-item">
+                <span class="feature-icon">💎</span>
+                <div>
+                    <h5 data-i18n="feature1_title">高端精英社区</h5>
+                    <p data-i18n="feature1_desc">汇聚全球各地的亚裔高净值单身人士</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔒</span>
+                <div>
+                    <h5 data-i18n="feature2_title">严格资质审核</h5>
+                    <p data-i18n="feature2_desc">实名认证 + 资产审核，确保圈层纯净</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">ℹ️</span>
+                <div>
+                    <h5><a href="/about" class="text-white text-decoration-none" data-i18n="about_title_nav">关于我们</a></h5>
+                    <p data-i18n="about_desc_nav">了解我们的使命与愿景</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📜</span>
+                <div>
+                    <h5><a href="/terms" class="text-white text-decoration-none" data-i18n="terms_title">使用条款</a></h5>
+                    <p data-i18n="terms_desc">了解您的权利和义务</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🛡️</span>
+                <div>
+                    <h5><a href="/privacy" class="text-white text-decoration-none" data-i18n="privacy_title">隐私声明</a></h5>
+                    <p data-i18n="privacy_desc">我们如何保护您的数据</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔒</span>
+                <div>
+                    <h5><a href="/safety" class="text-white text-decoration-none" data-i18n="safety_title">网络交友安全</a></h5>
+                    <p data-i18n="safety_desc">安全交友指南与防骗提示</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧登录注册框 -->
+        <div class="col-md-5">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h4 data-i18n="start_now">现在就开始！</h4>
+                </div>
+                <div class="card-body p-4">
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+
+                    <ul class="nav nav-tabs nav-fill mb-4" id="authTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if active_tab != 'login' %}active{% endif %}" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" data-i18n="register_tab">免费注册</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if active_tab == 'login' %}active{% endif %}" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" data-i18n="login_tab">会员登录</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="authTabContent">
+                        <!-- 注册表单 -->
+                        <div class="tab-pane fade {% if active_tab != 'login' %}show active{% endif %}" id="register" role="tabpanel">
+                            <form action="/register" method="post" onsubmit="return prepareRegister()" novalidate>
+                                <div class="input-group mb-3">
+                                    <select class="form-select" id="country-select" style="max-width: 120px;" onchange="updateCountry()">
+                                        <!-- JS填充 -->
+                                    </select>
+                                    <input type="tel" class="form-control" id="phone-input" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
+                                    <input type="hidden" name="phone" id="real-phone">
+                                </div>
+                                <div class="mb-3">
+                                    <input type="password" class="form-control" name="password" placeholder="设置密码" data-i18n-placeholder="password_setup_placeholder" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <select class="form-select" name="gender">
+                                            <option value="male" data-i18n="im_male">我是男士</option>
+                                            <option value="female" data-i18n="im_female">我是女士</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <select class="form-select" name="age_range" id="age-select">
+                                            <!-- JS填充 30-100 -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="country" id="real-country">
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="agree" name="agreement" required>
+                                    <label class="form-check-label small text-muted" for="agree">
+                                        <span data-i18n="agree_text">我已阅读并同意</span> <a href="/terms" target="_blank" data-i18n="terms">服务条款</a> <span data-i18n="and">和</span> <a href="/privacy" target="_blank" data-i18n="privacy">隐私声明</a><span data-i18n="age_confirm">。我确认我已年满30岁。</span>
+                                    </label>
+                                </div>
+
+                                <button type="submit" class="btn btn-purple w-100 py-2" data-i18n="view_singles">查看单身会员 ›</button>
+                            </form>
+                        </div>
+
+                        <!-- 登录表单 -->
+                        <div class="tab-pane fade {% if active_tab == 'login' %}show active{% endif %}" id="login" role="tabpanel">
+                            <form action="/login" method="post">
+                                <div class="mb-3">
+                                    <input type="tel" class="form-control" name="phone" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="password" class="form-control" name="password" placeholder="密码" data-i18n-placeholder="password_placeholder" required>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="remember">
+                                    <label class="form-check-label text-muted" for="remember" data-i18n="keep_logged_in">保持登录状态</label>
+                                </div>
+                                <button type="submit" class="btn btn-purple w-100 py-2" data-i18n="login_btn">登录</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- About & Contact -->
+<div class="container-fluid bg-light py-5 mt-5" style="color: #333;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <h3 data-i18n="about_title" style="color: #5e3a6e;">什么是 GlobalAsianElite?</h3>
+                <p class="lead" data-i18n="about_desc_1">GlobalAsianElite 是专门协助来自欧美及南美国家单身男女寻找婚恋对象的交友网站。我们提供友善的服务及先进的搜索系统。</p>
+                <a href="/about" class="btn btn-outline-primary" data-i18n="learn_more">了解更多</a>
+            </div>
+            <div class="col-md-6 mb-4">
+                <h3 data-i18n="why_choose_title" style="color: #5e3a6e;">为什么选择 GlobalAsianElite?</h3>
+                <p class="text-muted" data-i18n="why_choose_desc">不同于其他网站，GlobalAsianElite 提供友善的个人化服务并结合先进的技术。我们明白，有时候那个属于您的另一半就在地球的另一端！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+    <div class="container text-center">
+        <div class="mb-3">
+            <a href="/about" class="text-white-50 mx-2 text-decoration-none small" data-i18n="footer_about">关于我们</a>
+            <a href="/safety" class="text-white-50 mx-2 text-decoration-none small" data-i18n="footer_contact">联系我们</a>
+            <a href="/terms" class="text-white-50 mx-2 text-decoration-none small" data-i18n="footer_terms">使用条款</a>
+            <a href="/privacy" class="text-white-50 mx-2 text-decoration-none small" data-i18n="footer_privacy">隐私政策</a>
+            <a href="/safety" class="text-white-50 mx-2 text-decoration-none small" data-i18n="footer_safety">网络交友安全</a>
+        </div>
+        <p class="small text-white-50">© 2020 GlobalAsianElite. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/translations.js"></script>
+<script>
+    // Country & Age Logic
+    const countries = [
+        "United States","Canada","Mexico","Brazil","Argentina","Chile","Colombia","Peru","Venezuela","Uruguay","Paraguay","Bolivia",
+        "United Kingdom","Ireland","France","Germany","Italy","Spain","Portugal","Netherlands","Belgium","Luxembourg","Switzerland","Austria",
+        "Sweden","Norway","Denmark","Finland","Iceland","Poland","Czech Republic","Slovakia","Hungary","Romania","Bulgaria","Greece","Turkey",
+        "Russia","Ukraine","Belarus","Lithuania","Latvia","Estonia","Serbia","Croatia","Slovenia","Bosnia and Herzegovina","North Macedonia","Albania",
+        "China","Hong Kong","Macau","Taiwan","Japan","South Korea","Mongolia","Singapore","Malaysia","Thailand","Vietnam","Indonesia","Philippines",
+        "Cambodia","Laos","Myanmar","Brunei","India","Bangladesh","Pakistan","Sri Lanka","Nepal","Bhutan","Maldives",
+        "Australia","New Zealand",
+        "United Arab Emirates","Saudi Arabia","Qatar","Kuwait","Bahrain","Oman","Israel","Jordan","Lebanon","Iran","Iraq","Egypt","Morocco","Tunisia","Algeria",
+        "South Africa","Kenya","Nigeria","Ghana","Ethiopia","Tanzania","Uganda","Rwanda","Senegal","Ivory Coast"
+    ];
+
+    function initForm() {
+        // Init Age Dropdown
+        const ageSelect = document.getElementById('age-select');
+        for (let i = 30; i <= 100; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.innerText = i;
+            ageSelect.appendChild(opt);
+        }
+
+        // Init Country Dropdown
+        const countrySelect = document.getElementById('country-select');
+        countries.sort().forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = c;
+            countrySelect.appendChild(opt);
+        });
+        
+        // Set initial country value
+        const savedCountry = localStorage.getItem('reg_country');
+        if (savedCountry && countries.includes(savedCountry)) {
+            countrySelect.value = savedCountry;
+            document.getElementById('real-country').value = savedCountry;
+        } else if (countries.length > 0) {
+            document.getElementById('real-country').value = countries[0];
+        }
+
+        // Initialize Language from shared file
+        initLanguage();
+        
+        // Populate Index Dropdown from shared data
+        const dropdownMenu = document.getElementById('lang-dropdown');
+        dropdownMenu.innerHTML = '';
+        Object.keys(translations).forEach(code => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.className = 'dropdown-item';
+            a.href = '#';
+            a.onclick = (e) => { e.preventDefault(); changeLanguage(code); };
+            a.textContent = translations[code].lang_name;
+            li.appendChild(a);
+            dropdownMenu.appendChild(li);
+        });
+
+        // Update current lang display
+        const savedLang = localStorage.getItem('site_lang') || 'en';
+        document.getElementById('currentLang').textContent = "🌐 " + (translations[savedLang]?.lang_name || "English");
+    }
+
+    // Override changeLanguage to update UI specific to index
+    const originalChangeLanguage = changeLanguage;
+    changeLanguage = function(lang) {
+        originalChangeLanguage(lang);
+        document.getElementById('currentLang').textContent = "🌐 " + translations[lang].lang_name;
+    }
+
+    function updateCountry() {
+        const val = document.getElementById('country-select').value;
+        document.getElementById('real-country').value = val;
+        localStorage.setItem('reg_country', val);
+    }
+
+    function prepareRegister() {
+        const phone = document.getElementById('phone-input').value;
+        document.getElementById('real-phone').value = phone; 
+        return true;
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', initForm);
+</script>
+
+</body>
+</html>

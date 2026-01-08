@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录 - MySocial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-pink-600">MySocial</h1>
+            <p class="text-gray-500">会员登录</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="/login" method="post" class="space-y-6">
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">手机号</label>
+                <input type="tel" name="phone" class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+                <input type="password" name="password" class="w-full border rounded px-3 py-2" required>
+            </div>
+
+            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 rounded transition duration-300">
+                登录
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <p class="text-sm text-gray-600">还没有账号？ <a href="/register" class="text-pink-600 font-bold">免费注册</a></p>
+        </div>
+    </div>
+</body>
+</html>

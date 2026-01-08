@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalAsianElite - 首页</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #5e3a6e;
+        }
+        body {
+            background-color: #f0f2f5;
+        }
+        .navbar {
+            background-color: var(--primary-purple);
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .modal-header {
+            border-bottom: none;
+            text-align: center;
+            display: block;
+        }
+        .modal-footer {
+            border-top: none;
+            justify-content: center;
+        }
+        .heart-icon {
+            font-size: 4rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+        .notify-container {
+            position: fixed;
+            right: 16px;
+            bottom: 24px;
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .notify-item {
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 360px;
+        }
+        .notify-avatar {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background:#666; display:flex; align-items:center; justify-content:center;
+        }
+        .notify-title { font-weight: 600; }
+        .notify-actions { margin-left: auto; display:flex; gap:8px; }
+        .notify-actions form { display:inline; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="#">GlobalAsianElite</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link active" href="/dashboard">首页</a></li>
+                <li class="nav-item"><a class="nav-link" href="/messages">讯息 <span class="badge bg-danger rounded-pill">6</span></a></li>
+                <li class="nav-item"><a class="nav-link" href="/activity">活动纪录 <span class="badge bg-secondary rounded-pill">{{ activity_counts['likes'] + activity_counts['favorites'] + activity_counts['views'] + activity_counts['blocks'] }}</span></a></li>
+            </ul>
+            <span class="navbar-text text-white">
+                欢迎, {{ user.name or '会员' }}
+            </span>
+            <a href="/logout" class="btn btn-outline-light btn-sm ms-3">退出</a>
+        </div>
+    </div>
+</nav>
+
+{% if notifications and notifications|length > 0 %}
+<div class="notify-container">
+    {% for n in notifications %}
+    <div class="notify-item">
+        {% if n['actor_avatar'] %}
+        <img src="{{ n['actor_avatar'] }}" class="notify-avatar" alt="头像">
+        {% else %}
+        <div class="notify-avatar">👤</div>
+        {% endif %}
+        <div>
+            <div class="notify-title">
+                {% if n['type'] == 'view' %}
+                有人查看了您的个人资料！
+                {% elif n['type'] == 'like' %}
+                你又收到了一个赞！
+                {% else %}
+                新通知
+                {% endif %}
+            </div>
+            <div class="small text-white-50">
+                <a href="/member/{{ n['actor_id'] }}" class="link-light text-decoration-none">
+                    查看谁与您互动
+                </a>
+            </div>
+        </div>
+        <div class="notify-actions">
+            <form action="/notifications/{{ n['id'] }}/read" method="post">
+                <button class="btn btn-sm btn-outline-light" type="submit">关闭</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Right Side Quick Menu -->
+<div id="quickMenu" class="position-fixed" style="right:16px; top:14px; z-index:1070;">
+    <div class="dropdown">
+        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--primary-purple); color: #fff; border-color: #fff;">
+            功能
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li><a class="dropdown-item" href="/member/{{ user.id }}">浏览文档</a></li>
+            <li><a class="dropdown-item" href="/profile/edit">文档编辑</a></li>
+            <li><a class="dropdown-item" href="/profile/photos">照片</a></li>
+            <li><a class="dropdown-item" href="/dashboard">佳缘</a></li>
+            <li><a class="dropdown-item" href="/profile/edit#appearance">兴趣嗜好</a></li>
+            <li><a class="dropdown-item" href="/profile/edit#basic">个性文档</a></li>
+            <li><a class="dropdown-item" href="/verification">验证文档资料</a></li>
+            <li><a class="dropdown-item" href="/safety">IMBRA</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Ideal Match Modal -->
+<div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="heart-icon">♥</div>
+                <h4 class="modal-title">描述您理想的对象来继续</h4>
+                <p class="text-muted small">回答下列有关您理想对象的条件:</p>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">寻找:</label>
+                        <select class="form-select">
+                            <option>男性</option>
+                            <option>女性</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">年龄:</label>
+                        <div class="d-flex gap-2">
+                            <select class="form-select"><option>18</option><option selected>40</option></select>
+                            <span class="align-self-center">至</span>
+                            <select class="form-select"><option>50</option><option selected>65</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">居住地区:</label>
+                        <select class="form-select">
+                            <option>任何国家</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">是否抽烟?</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" checked><label class="form-check-label">不限</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox"><label class="form-check-label">不抽烟</label></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-purple w-100" data-bs-dismiss="modal" style="background-color: var(--primary-purple); color: white;">保存并继续</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card mb-3">
+                <div class="card-body text-center">
+                    {% if user.avatar_path %}
+                    <a href="/member/{{ user.id }}"><img src="{{ user.avatar_path }}" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;"></a>
+                    {% else %}
+                    <a href="/member/{{ user.id }}" class="d-inline-block">
+                        <div class="bg-secondary rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; color: white; font-size: 2rem; cursor:pointer;">
+                            {{ user.name[0] if user.name else '用' }}
+                        </div>
+                    </a>
+                    {% endif %}
+                    <h5 class="card-title">{{ user.name or '未设置昵称' }}</h5>
+                    <p class="card-text text-muted">{{ user.city or user.country }}</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="/profile/edit" class="btn btn-outline-primary btn-sm">编辑资料</a>
+                        <a href="/profile/photos" class="btn btn-outline-primary btn-sm">上传照片</a>
+                        {% if not user.is_verified %}
+                        <a href="/verification" class="btn btn-warning btn-sm">实名认证 (未完成)</a>
+                        {% else %}
+                        <button class="btn btn-success btn-sm" disabled>已实名认证 ✓</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>推荐会员</h4>
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='' else '' }}" href="/dashboard">佳缘</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='mutual' else '' }}" href="/dashboard?filter=mutual">双向配对</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='i_liked' else '' }}" href="/dashboard?filter=i_liked">反向配对佳缘</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='online' else '' }}" href="/dashboard?filter=online">在线</a>
+                    <div class="btn-group">
+                        <a class="btn btn-outline-secondary btn-sm {{ 'active' if sort=='active' else '' }}" href="/dashboard?sort=active">按活跃</a>
+                        <a class="btn btn-outline-secondary btn-sm {{ 'active' if sort=='verified' else '' }}" href="/dashboard?sort=verified">已认证优先</a>
+                        <a class="btn btn-outline-secondary btn-sm {{ 'active' if sort=='photos' else '' }}" href="/dashboard?sort=photos">有照片优先</a>
+                    </div>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='favorites' else '' }}" href="/dashboard?filter=favorites">我的最爱</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if sort=='' else '' }}" href="/dashboard?sort=">最新加入会员</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if sort=='photos' else '' }}" href="/dashboard?sort=photos">最新照片</a>
+                    <a class="btn btn-outline-secondary btn-sm {{ 'active' if filter=='my_region' else '' }}" href="/dashboard?filter=my_region">我的地区</a>
+                </div>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for m in members %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        {% if m['avatar_path'] %}
+                        <a href="/member/{{ m['id'] }}"><img src="{{ m['avatar_path'] }}" style="height:250px; object-fit:cover;" alt="头像"></a>
+                        {% else %}
+                        <a href="/member/{{ m['id'] }}" class="text-decoration-none d-block" style="height: 250px;">
+                            <div style="height: 100%; background: #eee; display: flex; align-items: center; justify-content: center; color: #aaa; cursor:pointer;">
+                                {{ (m['name'] or '用户')[0] if m['name'] else '用户' }}
+                            </div>
+                        </a>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="/member/{{ m['id'] }}" class="text-decoration-none">{{ m['name'] or ('会员'+m['id']|string) }}</a>
+                                {% if m['is_verified'] %}<span class="badge bg-success ms-2">已实名认证</span>{% endif %}
+                                <small class="text-muted">{{ m['age_range'] }}</small>
+                            </h5>
+                            <p class="card-text small text-muted">{{ m['country'] }}</p>
+                        </div>
+                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
+                            <form action="/like/{{ m['id'] }}" method="post"><button class="btn btn-light btn-sm" type="submit">❤</button></form>
+                            <button class="btn btn-light btn-sm" data-chat="{{ m['id'] }}">✉</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('matchModal'));
+    });
+
+    const chatPanel = document.createElement('div');
+    chatPanel.id = 'chatPanel';
+    chatPanel.style.position = 'fixed';
+    chatPanel.style.right = '16px';
+    chatPanel.style.top = '80px';
+    chatPanel.style.width = '340px';
+    chatPanel.style.maxHeight = '70vh';
+    chatPanel.style.background = '#2f2140';
+    chatPanel.style.color = '#fff';
+    chatPanel.style.borderRadius = '12px';
+    chatPanel.style.boxShadow = '0 10px 24px rgba(0,0,0,0.3)';
+    chatPanel.style.display = 'none';
+    chatPanel.style.flexDirection = 'column';
+    chatPanel.style.zIndex = '1060';
+    chatPanel.innerHTML = '<div id="chatHeader" style="padding:12px;display:flex;justify-content:space-between;align-items:center;"></div><div id="chatMessages" style="padding:12px;overflow:auto;flex:1;background:#fff;color:#000"></div><form id="chatForm" style="padding:12px;border-top:1px solid #ddd;background:#fff"><div class="input-group"><input name="content" class="form-control" placeholder="输入消息..."/><button class="btn btn-primary" type="submit">发送</button></div></form>';
+    document.body.appendChild(chatPanel);
+
+    let currentPeer = null;
+    const CURRENT_USER_ID = Number('{{ user.id }}');
+
+    async function openChat(peerId) {
+        currentPeer = peerId;
+        const res = await fetch('/chat_box/' + peerId);
+        if (!res.ok) return;
+        const data = await res.json();
+        const h = document.getElementById('chatHeader');
+        const m = document.getElementById('chatMessages');
+        h.innerHTML = '<div class="d-flex align-items-center"><div class="rounded-circle me-2" style="width:28px;height:28px;background:#666;display:flex;align-items:center;justify-content:center;color:#fff;">' + ((data.peer.name||'会员').slice(0,1)) + '</div><div><strong>' + (data.peer.name||'会员') + '</strong> • ' + (data.peer.country||'') + '</div></div><button type="button" class="btn btn-sm btn-outline-light" id="chatClose">✕</button>';
+        m.innerHTML = '';
+        data.msgs.forEach(x => {
+            const mine = x.sender_id === CURRENT_USER_ID;
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = mine ? 'flex-end' : 'flex-start';
+            const bubble = document.createElement('div');
+            bubble.style.maxWidth = '80%';
+            bubble.style.padding = '8px 12px';
+            bubble.style.margin = '6px 0';
+            bubble.style.borderRadius = '12px';
+            bubble.style.background = mine ? '#e5f0ff' : '#f3f3f3';
+            bubble.textContent = x.content;
+            row.appendChild(bubble);
+            m.appendChild(row);
+        });
+        chatPanel.style.display = 'flex';
+        m.scrollTop = m.scrollHeight;
+        document.getElementById('chatClose').onclick = () => { chatPanel.style.display = 'none'; };
+    }
+
+    document.querySelectorAll('[data-chat]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openChat(btn.getAttribute('data-chat'));
+        });
+    });
+
+    document.getElementById('chatForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const input = this.querySelector('input[name="content"]');
+        const text = input.value.trim();
+        if (!text || !currentPeer) return;
+        const fd = new FormData();
+        fd.append('content', text);
+        const res = await fetch('/chat_box/' + currentPeer + '/send', { method: 'POST', body: fd });
+        const ok = res.ok ? (await res.json()).ok : false;
+        if (ok) {
+            const m = document.getElementById('chatMessages');
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'flex-end';
+            const bubble = document.createElement('div');
+            bubble.style.maxWidth = '80%';
+            bubble.style.padding = '8px 12px';
+            bubble.style.margin = '6px 0';
+            bubble.style.borderRadius = '12px';
+            bubble.style.background = '#e5f0ff';
+            bubble.textContent = text;
+            row.appendChild(bubble);
+            m.appendChild(row);
+            m.scrollTop = m.scrollHeight;
+            input.value = '';
+        }
+    });
+</script>
+</body>
+</html>
