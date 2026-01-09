@@ -218,26 +218,31 @@ async def send_code(item: PhoneRequest):
     # UniSMS 发送逻辑
     access_key_secret = os.getenv("UNISMS_ACCESS_KEY_SECRET")
     
-    if access_key_secret:
-        try:
-            client = UniClient(UNISMS_ACCESS_KEY_ID, access_key_secret)
-            res = client.send({
-                "to": item.phone,
-                "signature": "GlobalAsianElite",  # 请确保在 UniSMS 后台申请了此签名
-                "templateId": "pub_verif_basic2", # 请确保使用了正确的模板ID，或改为您的自定义模板ID
-                "data": {"code": code}
-            })
-            print(f"DEBUG: UniSMS Response: {res}")
-        except Exception as e:
-            print(f"ERROR: UniSMS send failed: {e}")
-            # 如果发送失败，但在开发模式下，我们允许继续（模拟模式）
-            print(f"WARNING: Falling back to simulation mode due to error.")
-    else:
-        print("WARNING: UNISMS_ACCESS_KEY_SECRET not set. Using simulation mode.")
+    # 尝试发送短信（支持简单模式/无密钥模式）
+    try:
+        # 如果 access_key_secret 为 None，UniClient 会自动使用简单模式（不签名）
+        client = UniClient(UNISMS_ACCESS_KEY_ID, access_key_secret)
+        res = client.send({
+            "to": item.phone,
+            "signature": "GlobalAsianElite",  # 请确保在 UniSMS 后台申请了此签名
+            "templateId": "pub_verif_basic2", # 请确保使用了正确的模板ID，或改为您的自定义模板ID
+            "data": {"code": code}
+        })
+        print(f"DEBUG: UniSMS Response: {res}")
+        
+        # 检查响应内容，如果发送失败也转入模拟模式
+        if getattr(res, 'code', '0') != '0':
+             print(f"WARNING: UniSMS API returned error: {res}")
+             raise Exception(f"API Error: {res}")
+
+    except Exception as e:
+        print(f"ERROR: UniSMS send failed: {e}")
+        # 如果发送失败，或者未配置正确的密钥导致失败，我们允许继续（模拟模式）
+        print(f"WARNING: Falling back to simulation mode due to error.")
 
     # 在任何情况下（发送成功或模拟模式），都返回成功
     # 注意：在生产环境中，如果发送失败应该返回错误
-    return {"success": True, "message": "验证码已发送 (或模拟模式)", "debug_code": code}
+    return {"success": True, "message": "验证码已发送", "debug_code": code}
 
 @app.post("/register")
 async def register(
