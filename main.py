@@ -746,6 +746,7 @@ async def status_check(request: Request):
             user = await cursor.fetchone()
             
     if not user:
+        request.session.clear()
         return RedirectResponse(url="/")
         
     if user["status"] == "active":
