@@ -11,11 +11,14 @@ import os
 import random
 import shutil
 import uuid
+from uni.client import UniClient
 
 app = FastAPI()
 
 # 配置
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
+# UniSMS 配置
+UNISMS_ACCESS_KEY_ID = "kFWQ7AsDxdxARQSpaXZQx1uiKdNBWn8fx7kXgPAMAFqXvXiXP"
 DATABASE = "social.db"
 UPLOAD_DIR = "static/uploads"
 PRIVATE_UPLOAD_DIR = "private_uploads"
