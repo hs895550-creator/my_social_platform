@@ -30,6 +30,7 @@
         <h3>用户审核管理</h3>
         <div class="btn-group">
             <a href="{{ admin_prefix }}/dashboard?status=pending_approval" class="btn btn-{{ 'primary' if current_status == 'pending_approval' else 'outline-primary' }}">待审核</a>
+            <a href="{{ admin_prefix }}/dashboard?status=pending_upload" class="btn btn-{{ 'primary' if current_status == 'pending_upload' else 'outline-primary' }}">待补全</a>
             <a href="{{ admin_prefix }}/dashboard?status=active" class="btn btn-{{ 'primary' if current_status == 'active' else 'outline-primary' }}">已通过</a>
             <a href="{{ admin_prefix }}/dashboard?status=rejected" class="btn btn-{{ 'primary' if current_status == 'rejected' else 'outline-primary' }}">已拒绝</a>
             <a href="{{ admin_prefix }}/dashboard?status=all" class="btn btn-{{ 'primary' if current_status == 'all' else 'outline-primary' }}">全部用户</a>
@@ -62,61 +63,6 @@
                         {% endif %}
                     </span>
                     <small>注册: {{ user.created_at }}</small>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h6>基本信息</h6>
-                            <p><strong>手机号:</strong> {{ user.phone }}</p>
-                            <p><strong>姓名:</strong> {{ user.name or '未填写' }}</p>
-                            <p><strong>性别:</strong> {{ user.gender }}</p>
-                            <p><strong>年龄段:</strong> {{ user.age_range }}</p>
-                            <p><strong>国家:</strong> {{ user.country }}</p>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h6>身份证件</h6>
-                            {% if user.id_card_path %}
-                            <a href="/{{ user.id_card_path }}" target="_blank">
-                                <img src="/{{ user.id_card_path }}" class="img-preview img-thumbnail">
-                            </a>
-                            {% else %}
-                            <span class="text-danger">未上传</span>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <h6>资产证明</h6>
-                            {% if user.asset_proof_path %}
-                            <a href="/{{ user.asset_proof_path }}" target="_blank">
-                                <img src="/{{ user.asset_proof_path }}" class="img-preview img-thumbnail">
-                            </a>
-                            {% else %}
-                            <span class="text-danger">未上传</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                <div class="card-footer text-end">
-                    {% if user.status == 'pending_approval' %}
-                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
-                        <button class="btn btn-danger btn-sm">拒绝</button>
-                    </form>
-                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
-                        <button class="btn btn-success btn-sm">通过</button>
-                    </form>
-                    {% elif user.status == 'active' %}
-                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
-                        <button class="btn btn-danger btn-sm">封禁/拒绝</button>
-                    </form>
-                    {% elif user.status == 'rejected' %}
-                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
-                        <button class="btn btn-success btn-sm">重新通过</button>
-                    </form>
-                    {% else %}
-                     <!-- pending_upload or others -->
-                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
-                        <button class="btn btn-success btn-sm">通过</button>
-                    </form>
-                    {% endif %}
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -167,6 +113,28 @@
                             <p class="mb-1"><strong>IP地址:</strong> {{ user.ip_address }}</p>
                         </div>
                     </div>
+                </div>
+                <div class="card-footer text-end">
+                    {% if user.status == 'pending_approval' %}
+                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-danger btn-sm">拒绝</button>
+                    </form>
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">通过</button>
+                    </form>
+                    {% elif user.status == 'active' %}
+                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-danger btn-sm">封禁/拒绝</button>
+                    </form>
+                    {% elif user.status == 'rejected' %}
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">重新通过</button>
+                    </form>
+                    {% else %}
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">通过</button>
+                    </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

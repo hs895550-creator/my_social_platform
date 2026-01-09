@@ -19,9 +19,11 @@ app = FastAPI()
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
 # UniSMS 配置
 UNISMS_ACCESS_KEY_ID = "kFWQ7AsDxdxARQSpaXZQx1uiKdNBWn8fx7kXgPAMAFqXvXiXP"
-DATABASE = "social.db"
-UPLOAD_DIR = "static/uploads"
-PRIVATE_UPLOAD_DIR = "private_uploads"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, "social.db")
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
+PRIVATE_UPLOAD_DIR = os.path.join(BASE_DIR, "private_uploads")
 ADMIN_PASSWORD = "admin"  # 简单演示用管理员密码
 ADMIN_PREFIX = "/admin_secure_x9z"  # 后台安全路径前缀
 
@@ -29,12 +31,12 @@ ADMIN_PREFIX = "/admin_secure_x9z"  # 后台安全路径前缀
 SMS_CODES = {}
 
 # 确保上传目录存在
-os.makedirs(f"{UPLOAD_DIR}/avatars", exist_ok=True)
-os.makedirs(f"{PRIVATE_UPLOAD_DIR}/id_cards", exist_ok=True)
-os.makedirs(f"{PRIVATE_UPLOAD_DIR}/assets", exist_ok=True)
+os.makedirs(os.path.join(UPLOAD_DIR, "avatars"), exist_ok=True)
+os.makedirs(os.path.join(PRIVATE_UPLOAD_DIR, "id_cards"), exist_ok=True)
+os.makedirs(os.path.join(PRIVATE_UPLOAD_DIR, "assets"), exist_ok=True)
 
 # 挂载静态文件
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # 添加 Session 中间件用于保持登录状态
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
@@ -42,7 +44,7 @@ app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # 模板引擎
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # 数据库初始化
 async def init_db():
@@ -471,7 +473,7 @@ async def verify(
     if avatar and avatar.filename:
         ext = os.path.splitext(avatar.filename)[1]
         filename = f"{user_id}_{uuid.uuid4()}{ext}"
-        filepath = f"{UPLOAD_DIR}/{filename}"
+        filepath = os.path.join(UPLOAD_DIR, filename)
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(avatar.file, buffer)
         avatar_path = f"/static/uploads/{filename}"
@@ -480,40 +482,39 @@ async def verify(
     if id_card_front and id_card_front.filename:
         ext = os.path.splitext(id_card_front.filename)[1]
         filename = f"{user_id}_front_{uuid.uuid4()}{ext}"
-        filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
+        filepath = os.path.join(PRIVATE_UPLOAD_DIR, "id_cards", filename)
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(id_card_front.file, buffer)
-        id_card_front_path = filepath
+        id_card_front_path = os.path.relpath(filepath, BASE_DIR)
 
     # 处理证件上传 (私密) - 反面
     if id_card_back and id_card_back.filename:
         ext = os.path.splitext(id_card_back.filename)[1]
         filename = f"{user_id}_back_{uuid.uuid4()}{ext}"
-        filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
+        filepath = os.path.join(PRIVATE_UPLOAD_DIR, "id_cards", filename)
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(id_card_back.file, buffer)
-        id_card_back_path = filepath
+        id_card_back_path = os.path.relpath(filepath, BASE_DIR)
 
     # 处理证件上传 (私密) - 手持
     if id_card_handheld and id_card_handheld.filename:
         ext = os.path.splitext(id_card_handheld.filename)[1]
         filename = f"{user_id}_handheld_{uuid.uuid4()}{ext}"
-        filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
+        filepath = os.path.join(PRIVATE_UPLOAD_DIR, "id_cards", filename)
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(id_card_handheld.file, buffer)
-        id_card_handheld_path = filepath
+        id_card_handheld_path = os.path.relpath(filepath, BASE_DIR)
         
     # 处理资产证明上传 (私密)
     if asset_proof and asset_proof.filename:
         ext = os.path.splitext(asset_proof.filename)[1]
         filename = f"{user_id}_{uuid.uuid4()}{ext}"
-        # 存放在 id_cards 同级或新建文件夹，这里复用 id_cards 文件夹或新建 asset_proofs
-        asset_dir = f"{PRIVATE_UPLOAD_DIR}/assets"
+        asset_dir = os.path.join(PRIVATE_UPLOAD_DIR, "assets")
         os.makedirs(asset_dir, exist_ok=True)
-        filepath = f"{asset_dir}/{filename}"
+        filepath = os.path.join(asset_dir, filename)
         with open(filepath, "wb") as buffer:
             shutil.copyfileobj(asset_proof.file, buffer)
-        asset_proof_path = filepath
+        asset_proof_path = os.path.relpath(filepath, BASE_DIR)
 
     async with aiosqlite.connect(DATABASE) as db:
         if avatar_path:
@@ -526,16 +527,21 @@ async def verify(
             await db.execute("UPDATE users SET id_card_handheld_path = ? WHERE id = ?", (id_card_handheld_path, user_id))
         if asset_proof_path:
             await db.execute("UPDATE users SET asset_proof_path = ? WHERE id = ?", (asset_proof_path, user_id))
-        
-        # 检查是否已上传必要文档，更新状态
-        await db.execute("""
-            UPDATE users SET status = 'pending_approval' 
-            WHERE id = ? 
-            AND id_card_front_path IS NOT NULL 
-            AND id_card_back_path IS NOT NULL 
-            AND id_card_handheld_path IS NOT NULL 
-            AND asset_proof_path IS NOT NULL
-        """, (user_id,))
+
+        async with db.execute(
+            """
+            SELECT id_card_front_path, id_card_back_path, id_card_handheld_path, asset_proof_path
+            FROM users WHERE id = ?
+            """,
+            (user_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+
+        if row and all(row):
+            await db.execute("UPDATE users SET status = 'pending_approval' WHERE id = ?", (user_id,))
+        else:
+            await db.execute("UPDATE users SET status = 'pending_upload' WHERE id = ?", (user_id,))
+
         await db.commit()
 
     return RedirectResponse(url="/status_check", status_code=303)
@@ -561,7 +567,7 @@ async def photo_upload(request: Request, photo: UploadFile = File(...)):
 
     ext = os.path.splitext(photo.filename)[1]
     filename = f"{user_id}_{uuid.uuid4()}{ext}"
-    filepath = f"{UPLOAD_DIR}/{filename}"
+    filepath = os.path.join(UPLOAD_DIR, filename)
     with open(filepath, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
     photo_path = f"/static/uploads/{filename}"
@@ -1029,23 +1035,25 @@ async def get_private_file(request: Request, path: str):
     if not user_id and not is_admin:
         raise HTTPException(status_code=403, detail="Not authenticated")
         
-    # 安全检查: 防止路径遍历
-    if ".." in path or path.startswith("/"):
+    if ".." in path:
         raise HTTPException(status_code=403, detail="Invalid path")
-        
-    # 检查文件是否存在
-    if not os.path.exists(path):
+
+    abs_path = os.path.abspath(os.path.join(BASE_DIR, path))
+    if os.path.commonpath([abs_path, PRIVATE_UPLOAD_DIR]) != PRIVATE_UPLOAD_DIR:
+        raise HTTPException(status_code=403, detail="Invalid path")
+
+    if not os.path.exists(abs_path):
         raise HTTPException(status_code=404, detail="File not found")
         
     # 权限检查 (简单实现: 管理员可看所有，普通用户只能看自己的)
     # 通过文件名判断: {user_id}_...
     if not is_admin:
-        filename = os.path.basename(path)
+        filename = os.path.basename(abs_path)
         file_user_id = filename.split("_")[0]
         if str(user_id) != file_user_id:
              raise HTTPException(status_code=403, detail="Permission denied")
 
-    return FileResponse(path)
+    return FileResponse(abs_path)
 
 # ----------------- 后台管理功能 -----------------
 
