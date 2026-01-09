@@ -311,7 +311,7 @@ async def register(
                 await db.commit()
                 
         # 注册成功后跳转到认证页面
-        return RedirectResponse(url="/verify", status_code=303)
+        return RedirectResponse(url="/verification", status_code=303)
         
     except Exception as e:
         return templates.TemplateResponse("index.html", {
