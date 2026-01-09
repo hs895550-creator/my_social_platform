@@ -1,6 +1,6 @@
 import uvicorn
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, status, UploadFile, File
-from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
@@ -24,7 +24,7 @@ DATABASE = os.path.join(BASE_DIR, "social.db")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
 PRIVATE_UPLOAD_DIR = os.path.join(BASE_DIR, "private_uploads")
-ADMIN_PASSWORD = "admin"  # 简单演示用管理员密码
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")  # 简单演示用管理员密码
 ADMIN_PREFIX = "/admin_secure_x9z"  # 后台安全路径前缀
 
 # 模拟短信验证码存储 {phone: code}
@@ -1057,8 +1057,13 @@ async def get_private_file(request: Request, path: str):
 
 # ----------------- 后台管理功能 -----------------
 
-# 定义后台安全路径前缀 (防止爆破)
-ADMIN_PREFIX = "/admin_secure_x9z"
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_alias(request: Request):
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+
+@app.get("/admin/login", response_class=HTMLResponse)
+async def admin_login_alias(request: Request):
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
 
 @app.get(f"{ADMIN_PREFIX}", response_class=HTMLResponse)
 async def admin_index(request: Request):
@@ -1100,6 +1105,44 @@ async def admin_dashboard(request: Request, status: str = "pending_approval"):
         "current_status": status,
         "admin_prefix": ADMIN_PREFIX
     })
+
+
+@app.get(f"{ADMIN_PREFIX}/debug")
+async def admin_debug(request: Request):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+
+    async with aiosqlite.connect(DATABASE) as db:
+        async with db.execute("SELECT COUNT(*) FROM users") as c:
+            total = (await c.fetchone())[0]
+
+        by_status = {}
+        async with db.execute("SELECT status, COUNT(*) FROM users GROUP BY status") as cur:
+            rows = await cur.fetchall()
+        for s, n in rows:
+            by_status[s] = n
+
+        async with db.execute(
+            """
+            SELECT COUNT(*)
+            FROM users
+            WHERE id_card_front_path IS NOT NULL
+              AND id_card_back_path IS NOT NULL
+              AND id_card_handheld_path IS NOT NULL
+              AND asset_proof_path IS NOT NULL
+            """
+        ) as c2:
+            docs_complete = (await c2.fetchone())[0]
+
+    return JSONResponse(
+        {
+            "base_dir": BASE_DIR,
+            "database": DATABASE,
+            "total_users": total,
+            "users_by_status": by_status,
+            "docs_complete_users": docs_complete,
+        }
+    )
 
 @app.post(f"{ADMIN_PREFIX}/approve/{{user_id}}")
 async def admin_approve(request: Request, user_id: int):
