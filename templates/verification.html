@@ -74,10 +74,18 @@
                 <strong data-i18n="verify_privacy_title">🔒 隐私承诺：</strong><br>
                 <span data-i18n="verify_privacy_desc">您上传的证件仅用于人工核实身份真实性。审核通过后，系统将自动模糊处理并加密存储。绝对不会在个人主页公开展示。</span>
             </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold" data-i18n="verify_id_front_label">上传身份证正面</label>
+                <input type="file" class="form-control" name="id_card_front" accept="image/*" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold" data-i18n="verify_id_back_label">上传身份证反面</label>
+                <input type="file" class="form-control" name="id_card_back" accept="image/*" required>
+            </div>
             <div class="mb-4">
-                <label class="form-label fw-bold" data-i18n="verify_id_label">上传护照或身份证正面</label>
-                <input type="file" class="form-control" name="id_card" accept="image/*" required>
-                <div class="form-text" data-i18n="verify_id_help">请确保证件文字清晰可见，无遮挡。</div>
+                <label class="form-label fw-bold" data-i18n="verify_id_handheld_label">手持身份证自拍照</label>
+                <input type="file" class="form-control" name="id_card_handheld" accept="image/*" required>
+                <div class="form-text" data-i18n="verify_id_handheld_help">请确保面部和证件信息清晰可见。</div>
             </div>
 
             <h4 class="section-title" data-i18n="verify_step2_title">2. 资产/收入证明</h4>

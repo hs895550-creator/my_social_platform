@@ -56,7 +56,9 @@ async def init_db():
                 age_range TEXT,
                 country TEXT,
                 avatar_path TEXT,
-                id_card_path TEXT,
+                id_card_front_path TEXT,
+                id_card_back_path TEXT,
+                id_card_handheld_path TEXT,
                 is_verified BOOLEAN DEFAULT 0,
                 ip_address TEXT,
                 name TEXT,
@@ -144,7 +146,8 @@ async def init_db():
         
         # 尝试添加新字段（如果表已存在）
         new_columns = [
-            "avatar_path TEXT", "id_card_path TEXT", "is_verified BOOLEAN DEFAULT 0",
+            "avatar_path TEXT", "id_card_front_path TEXT", "id_card_back_path TEXT", "id_card_handheld_path TEXT",
+            "is_verified BOOLEAN DEFAULT 0",
             "ip_address TEXT", "name TEXT", "dob TEXT", "state TEXT", "city TEXT",
             "hair_color TEXT", "eye_color TEXT", "height TEXT", "weight TEXT",
             "marital_status TEXT", "smoking TEXT", "match_gender TEXT",
@@ -435,7 +438,9 @@ async def verify_page(request: Request):
 async def verify(
     request: Request,
     avatar: UploadFile = File(None),
-    id_card: UploadFile = File(None),
+    id_card_front: UploadFile = File(None),
+    id_card_back: UploadFile = File(None),
+    id_card_handheld: UploadFile = File(None),
     asset_proof: UploadFile = File(None)
 ):
     user_id = request.session.get("user_id")
@@ -443,7 +448,9 @@ async def verify(
         return RedirectResponse(url="/", status_code=303)
 
     avatar_path = None
-    id_card_path = None
+    id_card_front_path = None
+    id_card_back_path = None
+    id_card_handheld_path = None
     asset_proof_path = None
 
     # 处理头像上传 (公开)
@@ -455,14 +462,32 @@ async def verify(
             shutil.copyfileobj(avatar.file, buffer)
         avatar_path = f"/static/uploads/{filename}"
 
-    # 处理证件上传 (私密)
-    if id_card and id_card.filename:
-        ext = os.path.splitext(id_card.filename)[1]
-        filename = f"{user_id}_{uuid.uuid4()}{ext}"
+    # 处理证件上传 (私密) - 正面
+    if id_card_front and id_card_front.filename:
+        ext = os.path.splitext(id_card_front.filename)[1]
+        filename = f"{user_id}_front_{uuid.uuid4()}{ext}"
         filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
         with open(filepath, "wb") as buffer:
-            shutil.copyfileobj(id_card.file, buffer)
-        id_card_path = filepath
+            shutil.copyfileobj(id_card_front.file, buffer)
+        id_card_front_path = filepath
+
+    # 处理证件上传 (私密) - 反面
+    if id_card_back and id_card_back.filename:
+        ext = os.path.splitext(id_card_back.filename)[1]
+        filename = f"{user_id}_back_{uuid.uuid4()}{ext}"
+        filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(id_card_back.file, buffer)
+        id_card_back_path = filepath
+
+    # 处理证件上传 (私密) - 手持
+    if id_card_handheld and id_card_handheld.filename:
+        ext = os.path.splitext(id_card_handheld.filename)[1]
+        filename = f"{user_id}_handheld_{uuid.uuid4()}{ext}"
+        filepath = f"{PRIVATE_UPLOAD_DIR}/id_cards/{filename}"
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(id_card_handheld.file, buffer)
+        id_card_handheld_path = filepath
         
     # 处理资产证明上传 (私密)
     if asset_proof and asset_proof.filename:
@@ -479,15 +504,24 @@ async def verify(
     async with aiosqlite.connect(DATABASE) as db:
         if avatar_path:
             await db.execute("UPDATE users SET avatar_path = ? WHERE id = ?", (avatar_path, user_id))
-        if id_card_path:
-            await db.execute("UPDATE users SET id_card_path = ? WHERE id = ?", (id_card_path, user_id))
+        if id_card_front_path:
+            await db.execute("UPDATE users SET id_card_front_path = ? WHERE id = ?", (id_card_front_path, user_id))
+        if id_card_back_path:
+            await db.execute("UPDATE users SET id_card_back_path = ? WHERE id = ?", (id_card_back_path, user_id))
+        if id_card_handheld_path:
+            await db.execute("UPDATE users SET id_card_handheld_path = ? WHERE id = ?", (id_card_handheld_path, user_id))
         if asset_proof_path:
             await db.execute("UPDATE users SET asset_proof_path = ? WHERE id = ?", (asset_proof_path, user_id))
         
         # 检查是否已上传必要文档，更新状态
-        # 我们需要先查询当前状态，或者直接假设如果本次上传了关键文件就更新状态
-        # 更严谨的做法是查询数据库看是否两个字段都有值了
-        await db.execute("UPDATE users SET status = 'pending_approval' WHERE id = ? AND id_card_path IS NOT NULL AND asset_proof_path IS NOT NULL", (user_id,))
+        await db.execute("""
+            UPDATE users SET status = 'pending_approval' 
+            WHERE id = ? 
+            AND id_card_front_path IS NOT NULL 
+            AND id_card_back_path IS NOT NULL 
+            AND id_card_handheld_path IS NOT NULL 
+            AND asset_proof_path IS NOT NULL
+        """, (user_id,))
         await db.commit()
 
     return RedirectResponse(url="/status_check", status_code=303)
