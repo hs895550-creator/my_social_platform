@@ -211,11 +211,26 @@ class PhoneRequest(BaseModel):
 
 @app.post("/send_code")
 async def send_code(item: PhoneRequest):
-    # 简单模拟：生成6位随机验证码
     code = str(random.randint(100000, 999999))
     SMS_CODES[item.phone] = code
     print(f"DEBUG: SMS Code for {item.phone} is {code}")
-    # 开发模式下直接返回验证码以便测试
+
+    # UniSMS 发送逻辑
+    try:
+        client = UniClient(UNISMS_ACCESS_KEY_ID, os.getenv("UNISMS_ACCESS_KEY_SECRET"))
+        res = client.send({
+            "to": item.phone,
+            "signature": "GlobalAsianElite",  # 请确保在 UniSMS 后台申请了此签名
+            "templateId": "pub_verif_basic2", # 请确保使用了正确的模板ID，或改为您的自定义模板ID
+            "data": {"code": code}
+        })
+        print(f"DEBUG: UniSMS Response: {res}")
+    except Exception as e:
+        print(f"ERROR: UniSMS send failed: {e}")
+        # 在生产环境中，这里应该返回错误给前端，或者记录日志
+        # 为了演示，我们仍然返回成功，但实际上发送失败了
+        return {"success": False, "message": f"短信发送失败: {str(e)}"}
+
     return {"success": True, "message": "验证码已发送", "debug_code": code}
 
 @app.post("/register")
