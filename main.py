@@ -1005,6 +1005,32 @@ async def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/", status_code=303)
 
+@app.get("/private_file")
+async def get_private_file(request: Request, path: str):
+    user_id = request.session.get("user_id")
+    is_admin = request.session.get("is_admin")
+    
+    if not user_id and not is_admin:
+        raise HTTPException(status_code=403, detail="Not authenticated")
+        
+    # 安全检查: 防止路径遍历
+    if ".." in path or path.startswith("/"):
+        raise HTTPException(status_code=403, detail="Invalid path")
+        
+    # 检查文件是否存在
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="File not found")
+        
+    # 权限检查 (简单实现: 管理员可看所有，普通用户只能看自己的)
+    # 通过文件名判断: {user_id}_...
+    if not is_admin:
+        filename = os.path.basename(path)
+        file_user_id = filename.split("_")[0]
+        if str(user_id) != file_user_id:
+             raise HTTPException(status_code=403, detail="Permission denied")
+
+    return FileResponse(path)
+
 # ----------------- 后台管理功能 -----------------
 
 # 定义后台安全路径前缀 (防止爆破)

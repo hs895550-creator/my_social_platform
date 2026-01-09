@@ -118,6 +118,56 @@
                     </form>
                     {% endif %}
                 </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center mb-3">
+                            <h6>身份证正面</h6>
+                            {% if user.id_card_front_path %}
+                            <a href="/private_file?path={{ user.id_card_front_path }}" target="_blank">
+                                <img src="/private_file?path={{ user.id_card_front_path }}" class="img-fluid img-thumbnail img-preview" alt="正面">
+                            </a>
+                            {% else %}
+                            <span class="text-muted">未上传</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h6>身份证反面</h6>
+                            {% if user.id_card_back_path %}
+                            <a href="/private_file?path={{ user.id_card_back_path }}" target="_blank">
+                                <img src="/private_file?path={{ user.id_card_back_path }}" class="img-fluid img-thumbnail img-preview" alt="反面">
+                            </a>
+                            {% else %}
+                            <span class="text-muted">未上传</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h6>手持身份证</h6>
+                            {% if user.id_card_handheld_path %}
+                            <a href="/private_file?path={{ user.id_card_handheld_path }}" target="_blank">
+                                <img src="/private_file?path={{ user.id_card_handheld_path }}" class="img-fluid img-thumbnail img-preview" alt="手持">
+                            </a>
+                            {% else %}
+                            <span class="text-muted">未上传</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-3 text-center mb-3">
+                            <h6>资产证明</h6>
+                            {% if user.asset_proof_path %}
+                            <a href="/private_file?path={{ user.asset_proof_path }}" target="_blank">
+                                <img src="/private_file?path={{ user.asset_proof_path }}" class="img-fluid img-thumbnail img-preview" alt="资产">
+                            </a>
+                            {% else %}
+                            <span class="text-muted">未上传</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <p class="mb-1"><strong>注册时间:</strong> {{ user.created_at }}</p>
+                            <p class="mb-1"><strong>IP地址:</strong> {{ user.ip_address }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         {% endfor %}
