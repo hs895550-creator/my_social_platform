@@ -153,7 +153,7 @@
                         {% else %}
                         <div class="placeholder">+</div>
                         {% endif %}
-                        <label class="upload-btn-overlay" for="upload{{ i }}">上传</label>
+                        <label class="upload-btn-overlay" for="upload{{ i }}" data-i18n="upload_btn">上传</label>
                     </div>
                     <form action="/photo/upload" method="post" enctype="multipart/form-data" id="form{{ i }}">
                         <input type="file" id="upload{{ i }}" name="photo" accept="image/*" class="d-none" onchange="document.getElementById('form{{ i }}').submit()">
@@ -163,38 +163,33 @@
             </div>
 
             <div class="mt-3">
-                <a href="#" class="text-decoration-none text-muted small">⬇ 无法上传照片?以其他方式上传»</a>
+                <a href="#" class="text-decoration-none text-muted small" data-i18n="upload_alternative">⬇ 无法上传照片?以其他方式上传»</a>
             </div>
 
             <div class="upload-tips">
-                <h5>如何上传好照片</h5>
-                <p>如何选择合适的文档照片:</p>
+                <h5 data-i18n="upload_tips_title">如何上传好照片</h5>
+                <p data-i18n="upload_tips_desc">如何选择合适的文档照片:</p>
                 <div class="row small">
                     <div class="col-md-6">
                         <ul class="list-unstyled">
-                            <li>• 展现您兴趣嗜好的生活照</li>
-                            <li>• 展现真实个性的你</li>
-                            <li>• 至少上传一张全身照</li>
+                            <li data-i18n="upload_tip_1">• 展现您兴趣嗜好的生活照</li>
+                            <li data-i18n="upload_tip_2">• 展现真实个性的你</li>
+                            <li data-i18n="upload_tip_3">• 至少上传一张全身照</li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <ul class="list-unstyled">
-                            <li>• 清楚显示您的五官</li>
-                            <li>• 照片清晰光线明亮</li>
-                            <li>• 请勿上传裸露不雅照片</li>
+                            <li data-i18n="upload_tip_4">• 清楚显示您的五官</li>
+                            <li data-i18n="upload_tip_5">• 照片清晰光线明亮</li>
+                            <li data-i18n="upload_tip_6">• 请勿上传裸露不雅照片</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Right Side Ad Placeholder -->
+        <!-- Right Side Ad Placeholder - REMOVED for compliance and clean UI -->
         <div class="col-md-3 d-none d-md-block">
-            <div class="border p-3 text-center bg-white" style="height: 100%;">
-                <h5 class="text-muted mt-5">Chat with an expert Online Now</h5>
-                <p class="small text-muted">A Technician Will Answer Your Questions in Minutes.</p>
-                <button class="btn btn-dark btn-sm rounded-pill px-4">Open ></button>
-            </div>
         </div>
     </div>
 </div>

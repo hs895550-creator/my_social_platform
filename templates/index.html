@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalAsianElite - 全球亚裔精英相亲 (Updated)</title>
+    <title>GlobalAsianElite - 全球亚裔精英相亲</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
@@ -14,7 +14,7 @@
         body {
             /* 替换为温馨的男女合照背景，使用 Unsplash 高清源 */
             background: linear-gradient(rgba(74, 46, 86, 0.8), rgba(44, 26, 51, 0.9)), 
-                        url('https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=2459&auto=format&fit=crop') no-repeat center center fixed;
+                        url('https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -197,8 +197,8 @@
                                     <input type="hidden" name="phone" id="real-phone">
                                 </div>
                                 <div class="input-group mb-3">
-                                    <input type="text" class="form-control" name="code" placeholder="验证码" required>
-                                    <button class="btn btn-outline-secondary" type="button" id="btn-send-code" onclick="sendSmsCode()">获取验证码</button>
+                                    <input type="text" class="form-control" name="code" placeholder="验证码" data-i18n-placeholder="code_placeholder" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-send-code" onclick="sendSmsCode()" data-i18n="send_code_btn">获取验证码</button>
                                 </div>
                                 <div class="mb-3">
                                     <input type="password" class="form-control" name="password" placeholder="设置密码" data-i18n-placeholder="password_setup_placeholder" required>
@@ -260,7 +260,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1523419409543-a5e549c1faa9?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1511895426328-dc8714191300?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story1_title">为了她，飞半个地球也值得</h5>
                     <p class="card-text small text-muted" data-i18n="story1_desc">我们一路走来发现，我们都想要的都一样，我们是天作之合。我从没想过会在这个网站上遇到像她这样的人。</p>
                 </div>
@@ -270,7 +270,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1542596594-649edbc13630?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story2_title">Tom对我说，对我绝对有兴趣</h5>
                     <p class="card-text small text-muted" data-i18n="story2_desc">因为我孤身一人在美国，想找一个能与我共度余生的人，在这里找到了翻译功能，沟通无障碍。</p>
                 </div>
@@ -280,7 +280,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1501901609772-df0848060b33?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story3_title">找到很棒的伴侣</h5>
                     <p class="card-text small text-muted" data-i18n="story3_desc">我在这里找到了很棒的伴侣。我们于2019年相识，并在平台上交流了4年。</p>
                 </div>
@@ -292,7 +292,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story4_title">找到了世界上最完美的男人</h5>
                     <p class="card-text small text-muted" data-i18n="story4_desc">谢谢。认识两个月后，我的另一半来看我了。我们一直很相爱，我们见了彼此的父母。</p>
                 </div>
@@ -302,7 +302,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1642257859842-c95f9fa8121d?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1523419409543-a5e549c1faa9?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story5_title">感谢您访问</h5>
                     <p class="card-text small text-muted" data-i18n="story5_desc">他善良有趣可爱与责任心，懂得尊重女性，把家人放在第一位，所以他是我见过最完美的男人。</p>
                 </div>
@@ -312,7 +312,7 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100 border-0 shadow-sm" style="background: rgba(255,255,255,0.95);">
                 <div class="card-body text-center">
-                    <img src="https://images.unsplash.com/photo-1621600411688-4be93cd68504?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+                    <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces" class="rounded-circle mb-3 shadow" style="width: 100px; height: 100px; object-fit: cover;">
                     <h5 class="card-title fs-6 fw-bold" data-i18n="story6_title">爱就在那里——不要放弃</h5>
                     <p class="card-text small text-muted" data-i18n="story6_desc">我们俩都抱着找到终身伴侣的愿望加入了平台，而现在我们找到了——这证明它真的有效！</p>
                 </div>
@@ -419,6 +419,9 @@
         
         // 更新下拉框选项（如果需要）
         updateSelectOptions(lang);
+        
+        // 更新国家列表语言
+        renderCountryOptions(lang);
     }
 
     function updateSelectOptions(lang) {
@@ -432,21 +435,48 @@
 
     // --- 国家区号处理逻辑 ---
     function initCountryCodes() {
+        // 初始渲染，使用保存的语言或默认语言
+        const savedLang = localStorage.getItem('lang') || 'zh';
+        renderCountryOptions(savedLang);
+    }
+
+    function renderCountryOptions(lang) {
         const select = document.getElementById('country-select');
         if (!select || typeof countryCodes === 'undefined') return;
 
-        // 按名称排序
-        countryCodes.sort((a, b) => a.name.localeCompare(b.name));
+        // 保存当前选中的值，以便重新渲染后恢复
+        const currentValue = select.value;
+
+        // 确定显示名称的字段
+        // 如果是中文(zh或zh-TW)，优先使用name_zh，否则使用name
+        const useChinese = lang.startsWith('zh');
+        
+        // 排序
+        countryCodes.sort((a, b) => {
+            const nameA = useChinese ? (a.name_zh || a.name) : a.name;
+            const nameB = useChinese ? (b.name_zh || b.name) : b.name;
+            return nameA.localeCompare(nameB, useChinese ? 'zh' : 'en');
+        });
+
+        // 清空现有选项
+        select.innerHTML = '';
 
         countryCodes.forEach(c => {
             const option = document.createElement('option');
             option.value = c.dial_code;
-            option.text = `${c.code} (${c.dial_code})`;
-            if (c.code === 'US') option.selected = true; // 默认选美国
+            // 显示格式：Name (+Code)
+            const displayName = useChinese ? (c.name_zh || c.name) : c.name;
+            option.text = `${displayName} (${c.dial_code})`;
+            
+            if (currentValue) {
+                if (c.dial_code === currentValue) option.selected = true;
+            } else {
+                if (c.code === 'US') option.selected = true; // 默认选美国
+            }
             select.appendChild(option);
         });
         
-        // 初始化隐藏字段
+        // 如果之前有选中值但现在没选中（可能逻辑变了），或者初始加载，更新隐藏字段
         updateCountry();
     }
 
@@ -471,8 +501,15 @@
     function sendSmsCode() {
         const countryCode = document.getElementById('country-select').value;
         const phoneInput = document.getElementById('phone-input').value;
+        
+        // 获取当前语言的翻译 helper
+        const getTrans = (key) => {
+            const lang = localStorage.getItem('lang') || 'zh';
+            return (translations[lang] && translations[lang][key]) || (translations['en'] && translations['en'][key]) || key;
+        };
+
         if (!phoneInput) {
-            alert('请输入手机号');
+            alert(getTrans('alert_enter_phone'));
             return;
         }
         const fullPhone = countryCode + phoneInput;
@@ -485,7 +522,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(data.message + " (测试验证码已在后台打印)");
+                alert(data.message + " (Debug: " + getTrans('alert_code_sent') + ")");
                 // 倒计时逻辑
                 let btn = document.getElementById('btn-send-code');
                 let count = 60;
@@ -496,7 +533,7 @@
                     if (count <= 0) {
                         clearInterval(interval);
                         btn.disabled = false;
-                        btn.innerText = '获取验证码';
+                        btn.innerText = getTrans('send_code_btn');
                     }
                 }, 1000);
             } else {

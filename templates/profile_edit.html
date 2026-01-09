@@ -129,7 +129,7 @@
                     </select>
                     <button type="button" class="btn btn-light btn-sm border text-nowrap" data-i18n="btn_change">更改</button>
                 </div>
-                <small class="text-muted">* 为保护您的隐私，我们仅保存您的出生年月</small>
+                <small class="text-muted" data-i18n="edit_privacy_note">* 为保护您的隐私，我们仅保存您的出生年月</small>
             </div>
 
             <div class="row mb-4">
@@ -297,22 +297,22 @@ function fillSelect(select, items, current) {
   select.innerHTML = '';
   const placeholder = document.createElement('option');
   placeholder.value = '';
-  placeholder.textContent = '请选择...';
-  // Use translations if available, otherwise 'Please select...'
-  // But fillSelect is called dynamically. 
-  // We can just rely on English as default or simple check.
-  // Actually, let's use a translation key if we can access translations object.
+  
+  let selectText = '请选择...';
+  let otherText = '其他';
+
   if (typeof translations !== 'undefined') {
-     const lang = localStorage.getItem('lang') || 'zh';
-     const t = translations[lang] || translations['en'];
-     // We need a key for "Please select..."
-     // Let's assume we might add one or just use hardcoded 'Please select...'
-     // For now, I'll stick to 'Please select...' as default or check if we can add a key.
-     // I'll leave it as is for now, maybe just "..."
-     placeholder.textContent = '...'; 
+      const lang = localStorage.getItem('lang') || 'zh';
+      const t = translations[lang] || translations['en'];
+      if (t) {
+          if (t.option_select) selectText = t.option_select;
+          if (t.option_other) otherText = t.option_other;
+      }
   }
   
+  placeholder.textContent = selectText;
   select.appendChild(placeholder);
+
   (items || []).forEach(v => {
     const opt = document.createElement('option');
     opt.value = v;
@@ -320,18 +320,10 @@ function fillSelect(select, items, current) {
     if (current && current === v) opt.selected = true;
     select.appendChild(opt);
   });
+  
   const other = document.createElement('option');
   other.value = '其他';
-  
-  // Use translation for 'Other'
-  let otherText = 'Other';
-  if (typeof translations !== 'undefined') {
-      const lang = localStorage.getItem('lang') || 'zh';
-      const t = translations[lang] || translations['en'];
-      if (t && t.option_other) otherText = t.option_other;
-  }
   other.textContent = otherText;
-  
   select.appendChild(other);
 }
 
@@ -346,10 +338,17 @@ function initLocation() {
   // 国家
   const sorted = [...countries].sort();
   countrySel.innerHTML = '';
-  // Add placeholder for country too
+  
   const ph = document.createElement('option');
   ph.value = '';
-  ph.textContent = '...';
+  
+  let selectText = '...';
+  if (typeof translations !== 'undefined') {
+      const lang = localStorage.getItem('lang') || 'zh';
+      const t = translations[lang] || translations['en'];
+      if (t && t.option_select) selectText = t.option_select;
+  }
+  ph.textContent = selectText;
   countrySel.appendChild(ph);
 
   sorted.forEach(c => {

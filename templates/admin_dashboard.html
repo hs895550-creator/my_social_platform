@@ -29,10 +29,10 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3>用户审核管理</h3>
         <div class="btn-group">
-            <a href="/admin/dashboard?status=pending_approval" class="btn btn-{{ 'primary' if current_status == 'pending_approval' else 'outline-primary' }}">待审核</a>
-            <a href="/admin/dashboard?status=active" class="btn btn-{{ 'primary' if current_status == 'active' else 'outline-primary' }}">已通过</a>
-            <a href="/admin/dashboard?status=rejected" class="btn btn-{{ 'primary' if current_status == 'rejected' else 'outline-primary' }}">已拒绝</a>
-            <a href="/admin/dashboard?status=all" class="btn btn-{{ 'primary' if current_status == 'all' else 'outline-primary' }}">全部用户</a>
+            <a href="{{ admin_prefix }}/dashboard?status=pending_approval" class="btn btn-{{ 'primary' if current_status == 'pending_approval' else 'outline-primary' }}">待审核</a>
+            <a href="{{ admin_prefix }}/dashboard?status=active" class="btn btn-{{ 'primary' if current_status == 'active' else 'outline-primary' }}">已通过</a>
+            <a href="{{ admin_prefix }}/dashboard?status=rejected" class="btn btn-{{ 'primary' if current_status == 'rejected' else 'outline-primary' }}">已拒绝</a>
+            <a href="{{ admin_prefix }}/dashboard?status=all" class="btn btn-{{ 'primary' if current_status == 'all' else 'outline-primary' }}">全部用户</a>
         </div>
     </div>
 
@@ -97,16 +97,25 @@
                 </div>
                 <div class="card-footer text-end">
                     {% if user.status == 'pending_approval' %}
-                    <form action="/admin/reject/{{ user.id }}" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('确定拒绝吗？')">拒绝</button>
+                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-danger btn-sm">拒绝</button>
                     </form>
-                    <form action="/admin/approve/{{ user.id }}" method="post" class="d-inline ms-2">
-                        <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('确定通过吗？')">通过审核</button>
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">通过</button>
                     </form>
                     {% elif user.status == 'active' %}
-                    <span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> 已通过</span>
+                    <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-danger btn-sm">封禁/拒绝</button>
+                    </form>
                     {% elif user.status == 'rejected' %}
-                    <span class="text-danger fw-bold"><i class="bi bi-x-circle-fill"></i> 已拒绝</span>
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">重新通过</button>
+                    </form>
+                    {% else %}
+                     <!-- pending_upload or others -->
+                    <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
+                        <button class="btn btn-success btn-sm">通过</button>
+                    </form>
                     {% endif %}
                 </div>
             </div>

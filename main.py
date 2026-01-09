@@ -4,8 +4,11 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+from pydantic import BaseModel
 import aiosqlite
 import os
+import random
 import shutil
 import uuid
 
@@ -17,6 +20,7 @@ DATABASE = "social.db"
 UPLOAD_DIR = "static/uploads"
 PRIVATE_UPLOAD_DIR = "private_uploads"
 ADMIN_PASSWORD = "admin"  # 简单演示用管理员密码
+ADMIN_PREFIX = "/admin_secure_x9z"  # 后台安全路径前缀
 
 # 模拟短信验证码存储 {phone: code}
 SMS_CODES = {}
@@ -31,6 +35,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 添加 Session 中间件用于保持登录状态
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+# 添加 ProxyHeaders 中间件以获取真实 IP (支持 Cloudflare 等)
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # 模板引擎
 templates = Jinja2Templates(directory="templates")
@@ -196,6 +202,18 @@ async def index(request: Request):
     if "user_id" in request.session:
         return RedirectResponse(url="/dashboard", status_code=303)
     return templates.TemplateResponse("index.html", {"request": request})
+
+class PhoneRequest(BaseModel):
+    phone: str
+
+@app.post("/send_code")
+async def send_code(item: PhoneRequest):
+    # 简单模拟：生成6位随机验证码
+    code = str(random.randint(100000, 999999))
+    SMS_CODES[item.phone] = code
+    print(f"DEBUG: SMS Code for {item.phone} is {code}")
+    # 开发模式下直接返回验证码以便测试
+    return {"success": True, "message": "验证码已发送", "debug_code": code}
 
 @app.post("/register")
 async def register(
@@ -535,31 +553,9 @@ async def member_page(request: Request, member_id: int):
             await db.commit()
     return templates.TemplateResponse("member.html", {"request": request, "member": member})
 
-@app.get("/admin/users", response_class=HTMLResponse)
+@app.get(f"{ADMIN_PREFIX}/users", response_class=HTMLResponse)
 async def admin_users(request: Request):
-    return RedirectResponse(url="/admin/dashboard", status_code=303)
-
-@app.post("/admin/approve/{user_id}")
-async def admin_approve(request: Request, user_id: int):
-    if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/login", status_code=303)
-        
-    async with aiosqlite.connect(DATABASE) as db:
-        await db.execute("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?", (user_id,))
-        await db.commit()
-        
-    return RedirectResponse(url="/admin/dashboard", status_code=303)
-
-@app.post("/admin/reject/{user_id}")
-async def admin_reject(request: Request, user_id: int):
-    if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/login", status_code=303)
-        
-    async with aiosqlite.connect(DATABASE) as db:
-        await db.execute("UPDATE users SET status = 'rejected' WHERE id = ?", (user_id,))
-        await db.commit()
-        
-    return RedirectResponse(url="/admin/dashboard", status_code=303)
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
 
 @app.get("/chat/{peer_id}", response_class=HTMLResponse)
 async def chat_page(request: Request, peer_id: int):
@@ -942,27 +938,30 @@ async def logout(request: Request):
 
 # ----------------- 后台管理功能 -----------------
 
-@app.get("/admin", response_class=HTMLResponse)
+# 定义后台安全路径前缀 (防止爆破)
+ADMIN_PREFIX = "/admin_secure_x9z"
+
+@app.get(f"{ADMIN_PREFIX}", response_class=HTMLResponse)
 async def admin_index(request: Request):
     if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/login")
-    return RedirectResponse(url="/admin/dashboard")
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login")
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard")
 
-@app.get("/admin/login", response_class=HTMLResponse)
+@app.get(f"{ADMIN_PREFIX}/login", response_class=HTMLResponse)
 async def admin_login_page(request: Request):
-    return templates.TemplateResponse("admin_login.html", {"request": request})
+    return templates.TemplateResponse("admin_login.html", {"request": request, "admin_prefix": ADMIN_PREFIX})
 
-@app.post("/admin/login")
+@app.post(f"{ADMIN_PREFIX}/login")
 async def admin_login(request: Request, password: str = Form(...)):
     if password == ADMIN_PASSWORD:
         request.session["is_admin"] = True
-        return RedirectResponse(url="/admin/dashboard", status_code=303)
-    return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误"})
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
+    return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误", "admin_prefix": ADMIN_PREFIX})
 
-@app.get("/admin/dashboard", response_class=HTMLResponse)
+@app.get(f"{ADMIN_PREFIX}/dashboard", response_class=HTMLResponse)
 async def admin_dashboard(request: Request, status: str = "pending_approval"):
     if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/login")
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login")
         
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
@@ -979,19 +978,42 @@ async def admin_dashboard(request: Request, status: str = "pending_approval"):
     return templates.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "users": users,
-        "current_status": status
+        "current_status": status,
+        "admin_prefix": ADMIN_PREFIX
     })
 
-@app.post("/admin/verify/{user_id}")
+@app.post(f"{ADMIN_PREFIX}/approve/{{user_id}}")
+async def admin_approve(request: Request, user_id: int):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+        
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?", (user_id,))
+        await db.commit()
+        
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
+
+@app.post(f"{ADMIN_PREFIX}/reject/{{user_id}}")
+async def admin_reject(request: Request, user_id: int):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+        
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("UPDATE users SET status = 'rejected' WHERE id = ?", (user_id,))
+        await db.commit()
+        
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
+
+@app.post(f"{ADMIN_PREFIX}/verify/{{user_id}}")
 async def admin_verify_user(request: Request, user_id: int):
     if not request.session.get("is_admin"):
-        return RedirectResponse(url="/admin/login")
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login")
         
     async with aiosqlite.connect(DATABASE) as db:
         await db.execute("UPDATE users SET is_verified = 1 WHERE id = ?", (user_id,))
         await db.commit()
         
-    return RedirectResponse(url="/admin/dashboard", status_code=303)
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
 
 @app.get("/private_uploads/{category}/{filename}")
 async def get_private_file(request: Request, category: str, filename: str):
