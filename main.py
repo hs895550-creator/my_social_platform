@@ -204,10 +204,24 @@ async def about(request: Request):
 # 路由
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    # 如果已登录，跳转到大厅
-    if "user_id" in request.session:
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return templates.TemplateResponse("index.html", {"request": request})
+
+    async with aiosqlite.connect(DATABASE) as db:
+        async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
+            row = await cursor.fetchone()
+
+    if not row:
+        request.session.clear()
+        return templates.TemplateResponse("index.html", {"request": request})
+
+    user_status = row[0]
+    if user_status == "active":
         return RedirectResponse(url="/dashboard", status_code=303)
-    return templates.TemplateResponse("index.html", {"request": request})
+    if user_status in ("pending_approval", "rejected"):
+        return RedirectResponse(url="/status_check", status_code=303)
+    return RedirectResponse(url="/verification", status_code=303)
 
 class PhoneRequest(BaseModel):
     phone: str
@@ -761,7 +775,7 @@ async def status_check(request: Request):
 async def dashboard(request: Request):
     user_id = request.session.get("user_id")
     if not user_id:
-        return RedirectResponse(url="/")
+        return RedirectResponse(url="/", status_code=303)
     
     async with aiosqlite.connect(DATABASE) as db:
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
@@ -773,6 +787,7 @@ async def dashboard(request: Request):
 
         # 强制状态检查
         if not current_user:
+             request.session.clear()
              return RedirectResponse(url="/", status_code=303)
         
         # 严格模式：非 active 状态一律禁止访问
