@@ -42,7 +42,7 @@
             <p class="lead text-muted" data-i18n="status_pending_desc">您的实名认证和资产证明已提交，后台团队正在加紧审核。</p>
             <p class="text-muted" data-i18n="status_pending_note">通常审核需要 1-24 小时。审核通过后，您将获得完整的会员权限。</p>
             <hr class="my-4">
-            <a href="/" class="btn btn-outline-secondary" data-i18n="status_return_home">返回首页</a>
+            <a href="/logout" class="btn btn-outline-secondary" data-i18n="status_return_home">返回首页</a>
         {% elif user.status == 'rejected' %}
             <div class="icon-box text-danger">❌</div>
             <h2 class="mb-3" data-i18n="status_rejected_title">审核未通过</h2>
