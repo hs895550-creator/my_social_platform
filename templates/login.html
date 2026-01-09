@@ -50,6 +50,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Listen for global language changes
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'lang' && e.newValue) {
+                    const switcher = document.getElementById('lang-switcher');
+                    if (switcher) switcher.value = e.newValue;
+                    applyLanguage();
+                }
+            });
+
             const switcher = document.getElementById('lang-switcher');
             if (typeof translations !== 'undefined') {
                 Object.keys(translations).forEach(lang => {

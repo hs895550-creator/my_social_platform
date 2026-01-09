@@ -372,6 +372,13 @@
     function initLanguage() {
         const savedLang = localStorage.getItem('lang') || 'zh';
         
+        // 监听跨标签页语言切换
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'lang' && e.newValue) {
+                changeLanguage(e.newValue);
+            }
+        });
+
         // 填充语言下拉菜单
         const dropdown = document.getElementById('lang-dropdown');
         if (dropdown && typeof translations !== 'undefined') {

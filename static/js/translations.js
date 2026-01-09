@@ -1070,7 +1070,145 @@ const translations = {
         "safety_h2_4": "신고 및 도움",
         "safety_p_8": "의심스러운 행동이나 괴롭힘을 겪으면 즉시 '신고' 기능을 사용하세요.",
         "safety_strong_1": "긴급 도움:",
-        "safety_li_1": "신변에 위협을 느끼면 즉시 현지 경찰(112 등)에 신고하세요.",
+        "safety_li_1": "신변에 위협을 느끼면 즉시 현지 경찰(112 등)에 신고하세요."
+    },
+    "vi": {
+        "lang_name": "Tiếng Việt",
+        "site_title": "GlobalAsianElite - Hẹn hò tinh hoa Á Châu",
+        "slogan": "Trang web hẹn hò cao cấp",
+        "register_tab": "Đăng ký miễn phí",
+        "login_tab": "Đăng nhập",
+        "phone_placeholder": "Số điện thoại",
+        "code_placeholder": "Mã xác nhận",
+        "send_code_btn": "Gửi mã",
+        "password_setup_placeholder": "Thiết lập mật khẩu",
+        "im_male": "Tôi là Nam",
+        "im_female": "Tôi là Nữ",
+        "agree_text": "Tôi đồng ý với",
+        "terms": "Điều khoản",
+        "and": "và",
+        "privacy": "Chính sách bảo mật",
+        "age_confirm": ". Tôi xác nhận đã trên 30 tuổi.",
+        "view_singles": "Xem thành viên ›",
+        "password_placeholder": "Mật khẩu",
+        "keep_logged_in": "Duy trì đăng nhập",
+        "login_btn": "Đăng nhập",
+        "status_pending_title": "Đang xét duyệt",
+        "status_pending_desc": "Hồ sơ đang được xem xét.",
+        "status_return_home": "Về trang chủ",
+        "nav_photos": "Ảnh",
+        "nav_verification": "Hồ sơ",
+        "nav_match": "Điều kiện",
+        "nav_home": "Trang chủ",
+        "verify_page_title": "Xác thực danh tính",
+        "verify_heading": "Xác thực tài khoản",
+        "verify_step1_title": "1. Xác thực danh tính",
+        "verify_step2_title": "2. Chứng minh tài sản",
+        "verify_step3_title": "3. Ảnh đại diện",
+        "verify_submit_btn": "Gửi hồ sơ",
+        "edit_title": "Chỉnh sửa hồ sơ",
+        "btn_save": "Lưu",
+        "photos_title": "Tải ảnh lên",
+        "upload_btn": "Tải lên",
+        "terms_heading": "Điều khoản sử dụng",
+        "privacy_heading": "Chính sách bảo mật",
+        "safety_heading": "An toàn hẹn hò",
+        "alert_enter_phone": "Vui lòng nhập số điện thoại",
+        "alert_code_sent": "Mã đã gửi",
+        "alert_error": "Lỗi",
+        "edit_privacy_note": "* Chỉ lưu tháng/năm sinh"
+    },
+    "th": {
+        "lang_name": "ไทย",
+        "site_title": "GlobalAsianElite - หาคู่ระดับพรีเมียม",
+        "slogan": "เว็บไซต์หาคู่ระดับพรีเมียม",
+        "register_tab": "ลงทะเบียนฟรี",
+        "login_tab": "เข้าสู่ระบบ",
+        "phone_placeholder": "เบอร์โทรศัพท์",
+        "code_placeholder": "รหัสยืนยัน",
+        "send_code_btn": "ส่งรหัส",
+        "password_setup_placeholder": "ตั้งรหัสผ่าน",
+        "im_male": "ฉันเป็นผู้ชาย",
+        "im_female": "ฉันเป็นผู้หญิง",
+        "agree_text": "ฉันยอมรับ",
+        "terms": "เงื่อนไข",
+        "and": "และ",
+        "privacy": "นโยบายความเป็นส่วนตัว",
+        "age_confirm": ". ฉันยืนยันว่าอายุเกิน 30 ปี",
+        "view_singles": "ดูสมาชิก ›",
+        "password_placeholder": "รหัสผ่าน",
+        "keep_logged_in": "คงการเข้าสู่ระบบ",
+        "login_btn": "เข้าสู่ระบบ",
+        "status_pending_title": "กำลังตรวจสอบ",
+        "status_pending_desc": "ข้อมูลกำลังถูกตรวจสอบ",
+        "status_return_home": "กลับสู่หน้าหลัก",
+        "nav_photos": "รูปถ่าย",
+        "nav_verification": "เอกสาร",
+        "nav_match": "การจับคู่",
+        "nav_home": "หน้าหลัก",
+        "verify_page_title": "ยืนยันตัวตน",
+        "verify_heading": "ยืนยันบัญชี",
+        "verify_step1_title": "1. ยืนยันตัวตน",
+        "verify_step2_title": "2. ยืนยันทรัพย์สิน",
+        "verify_step3_title": "3. รูปโปรไฟล์",
+        "verify_submit_btn": "ส่งข้อมูล",
+        "edit_title": "แก้ไขโปรไฟล์",
+        "btn_save": "บันทึก",
+        "photos_title": "อัปโหลดรูป",
+        "upload_btn": "อัปโหลด",
+        "terms_heading": "เงื่อนไขการใช้งาน",
+        "privacy_heading": "นโยบายความเป็นส่วนตัว",
+        "safety_heading": "ความปลอดภัย",
+        "alert_enter_phone": "กรุณากรอกเบอร์โทร",
+        "alert_code_sent": "ส่งรหัสแล้ว",
+        "alert_error": "ผิดพลาด",
+        "edit_privacy_note": "* เก็บเฉพาะเดือน/ปีเกิด"
+    },
+    "km": {
+        "lang_name": "ខ្មែរ",
+        "site_title": "GlobalAsianElite - ណាត់ជួបវរជន",
+        "slogan": "គេហទំព័រណាត់ជួបលំដាប់ខ្ពស់",
+        "register_tab": "ចុះឈ្មោះ",
+        "login_tab": "ចូល",
+        "phone_placeholder": "លេខទូរស័ព្ទ",
+        "code_placeholder": "លេខកូដ",
+        "send_code_btn": "ផ្ញើលេខកូដ",
+        "password_setup_placeholder": "កំណត់ពាក្យសម្ងាត់",
+        "im_male": "ខ្ញុំជាបុរស",
+        "im_female": "ខ្ញុំជានារី",
+        "agree_text": "ខ្ញុំយល់ព្រម",
+        "terms": "លក្ខខណ្ឌ",
+        "and": "និង",
+        "privacy": "ឯកជនភាព",
+        "age_confirm": ". ខ្ញុំមានអាយុលើសពី ៣០ ឆ្នាំ",
+        "view_singles": "មើលសមាជិក ›",
+        "password_placeholder": "ពាក្យសម្ងាត់",
+        "keep_logged_in": "រក្សាការចូល",
+        "login_btn": "ចូល",
+        "status_pending_title": "កំពុងត្រួតពិនិត្យ",
+        "status_pending_desc": "ឯកសារកំពុងត្រូវបានត្រួតពិនិត្យ",
+        "status_return_home": "ទំព័រដើម",
+        "nav_photos": "រូបថត",
+        "nav_verification": "ឯកសារ",
+        "nav_match": "ការផ្គូផ្គង",
+        "nav_home": "ទំព័រដើម",
+        "verify_page_title": "ផ្ទៀងផ្ទាត់អត្តសញ្ញាណ",
+        "verify_heading": "ផ្ទៀងផ្ទាត់គណនី",
+        "verify_step1_title": "១. អត្តសញ្ញាណ",
+        "verify_step2_title": "២. ទ្រព្យសម្បត្តិ",
+        "verify_step3_title": "៣. រូបថត",
+        "verify_submit_btn": "ដាក់ស្នើ",
+        "edit_title": "កែប្រែប្រវត្តិរូប",
+        "btn_save": "រក្សាទុក",
+        "photos_title": "បង្ហោះរូបថត",
+        "upload_btn": "បង្ហោះ",
+        "terms_heading": "លក្ខខណ្ឌប្រើប្រាស់",
+        "privacy_heading": "គោលការណ៍ឯកជនភាព",
+        "safety_heading": "សុវត្ថិភាព",
+        "alert_enter_phone": "សូមបញ្ចូលលេខទូរស័ព្ទ",
+        "alert_code_sent": "បានផ្ញើលេខកូដ",
+        "alert_error": "កំហុស",
+        "edit_privacy_note": "* រក្សាទុកតែខែ/ឆ្នាំកំណើត"
     }
 };
 
@@ -1121,6 +1259,13 @@ function applyLanguage() {
 }
 
 function initLanguage() {
+    // Listen for cross-tab language changes
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'lang') {
+            applyLanguage();
+        }
+    });
+
     // Initialize dropdown if exists
     const langSelect = document.getElementById('languageSelect');
     if (langSelect) {
@@ -1130,6 +1275,9 @@ function initLanguage() {
             <option value="en">English</option>
             <option value="ja">日本語</option>
             <option value="ko">한국어</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="th">ไทย</option>
+            <option value="km">ខ្មែរ</option>
         `;
         langSelect.addEventListener('change', (e) => {
             changeLanguage(e.target.value);

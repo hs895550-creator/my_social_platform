@@ -40,6 +40,7 @@ const countryCodes = [
     { name: "Bolivia", name_zh: "玻利维亚", code: "BO", dial_code: "+591" },
     { name: "Australia", name_zh: "澳大利亚", code: "AU", dial_code: "+61" },
     { name: "New Zealand", name_zh: "新西兰", code: "NZ", dial_code: "+64" },
+    { name: "Cambodia", name_zh: "柬埔寨", code: "KH", dial_code: "+855" },
     { name: "China", name_zh: "中国", code: "CN", dial_code: "+86" },
     { name: "Japan", name_zh: "日本", code: "JP", dial_code: "+81" },
     { name: "South Korea", name_zh: "韩国", code: "KR", dial_code: "+82" },

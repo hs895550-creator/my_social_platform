@@ -67,6 +67,12 @@
 <script src="/static/js/translations.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // Listen for global language changes
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'lang') {
+                applyLanguage();
+            }
+        });
         applyLanguage();
     });
 </script>
