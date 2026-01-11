@@ -1,8 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
 jinja2
 python-multipart
 aiosqlite
 itsdangerous
 uni-sdk
-
+aiofiles
+requests
