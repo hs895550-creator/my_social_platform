@@ -11,9 +11,20 @@ import os
 import random
 import shutil
 import uuid
-from uni.client import UniClient
+import traceback
+
+try:
+    from uni.client import UniClient
+except ImportError:
+    print("WARNING: Could not import UniClient. SMS functionality will fail.")
+    UniClient = None
 
 app = FastAPI()
+
+# Health Check Endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 # 配置
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
