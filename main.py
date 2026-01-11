@@ -46,6 +46,22 @@ app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 # 模板引擎
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
+# --- 优先路由：后台入口重定向 ---
+# 必须放在最前面，防止被静态文件或其他通配符拦截
+@app.get("/admin", include_in_schema=False)
+@app.get("/admin/", include_in_schema=False)
+async def admin_alias_root(request: Request):
+    """
+    重定向 /admin 到真正的后台登录页。
+    """
+    print(f"Redirecting /admin to {ADMIN_PREFIX}/login")
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+
+@app.get("/admin/login", include_in_schema=False)
+async def admin_login_alias_root(request: Request):
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+# --------------------------------
+
 # 数据库初始化
 async def init_db():
     async with aiosqlite.connect(DATABASE) as db:
@@ -1056,14 +1072,6 @@ async def get_private_file(request: Request, path: str):
     return FileResponse(abs_path)
 
 # ----------------- 后台管理功能 -----------------
-
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_alias(request: Request):
-    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
-
-@app.get("/admin/login", response_class=HTMLResponse)
-async def admin_login_alias(request: Request):
-    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
 
 @app.get(f"{ADMIN_PREFIX}", response_class=HTMLResponse)
 async def admin_index(request: Request):
