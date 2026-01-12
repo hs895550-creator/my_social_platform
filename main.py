@@ -26,6 +26,19 @@ app = FastAPI()
 async def health_check():
     return {"status": "ok"}
 
+# Request Logging Middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    try:
+        response = await call_next(request)
+        print(f"Request finished: {response.status_code}")
+        return response
+    except Exception as e:
+        print(f"Request failed: {str(e)}")
+        traceback.print_exc()
+        raise e
+
 # 配置
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
 # UniSMS 配置
@@ -202,16 +215,24 @@ def get_client_ip(request: Request) -> str:
 
 @app.on_event("startup")
 async def startup():
-    await init_db()
-    async with aiosqlite.connect(DATABASE) as db:
-        async with db.execute("SELECT id FROM users WHERE is_ai = 1 LIMIT 1") as cursor:
-            bot = await cursor.fetchone()
-        if not bot:
-            await db.execute(
-                "INSERT INTO users (phone, password, gender, age_range, country, name, is_verified, is_ai, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'active')",
-                ("BOT", "bot", None, None, None, "系统助手", 1)
-            )
-            await db.commit()
+    print("Starting up application...")
+    try:
+        await init_db()
+        print("Database initialized.")
+    except Exception as e:
+        print(f"Database initialization failed: {e}")
+        traceback.print_exc()
+
+    # Skip AI bot check for now to prevent startup hang
+    # async with aiosqlite.connect(DATABASE) as db:
+    #     async with db.execute("SELECT id FROM users WHERE is_ai = 1 LIMIT 1") as cursor:
+    #         bot = await cursor.fetchone()
+    #     if not bot:
+    #         await db.execute(
+    #             "INSERT INTO users (phone, password, gender, age_range, country, name, is_verified, is_ai, status) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 'active')",
+    #             ("BOT", "bot", None, None, None, "系统助手", 1)
+    #         )
+    #         await db.commit()
 
 # 静态页面路由
 @app.get("/terms", response_class=HTMLResponse)
