@@ -1222,6 +1222,14 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8080))
     print(f"Server is starting on port {port}...")
     try:
-        uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+        # 在代码中直接配置生产环境所需的代理设置，避免命令行解析错误
+        uvicorn.run(
+            "main:app", 
+            host="0.0.0.0", 
+            port=port, 
+            reload=False,
+            proxy_headers=True,
+            forwarded_allow_ips="*"
+        )
     except Exception as e:
         print(f"Server failed to start: {e}")
