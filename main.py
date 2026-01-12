@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSON
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from pydantic import BaseModel
 import aiosqlite
 import os
@@ -21,23 +20,9 @@ except ImportError:
 
 app = FastAPI()
 
-# Health Check Endpoint
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
-
-# Request Logging Middleware
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    print(f"Incoming request: {request.method} {request.url}")
-    try:
-        response = await call_next(request)
-        print(f"Request finished: {response.status_code}")
-        return response
-    except Exception as e:
-        print(f"Request failed: {str(e)}")
-        traceback.print_exc()
-        raise e
 
 # 配置
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
@@ -64,8 +49,6 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # 添加 Session 中间件用于保持登录状态
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
-# 添加 ProxyHeaders 中间件以获取真实 IP (支持 Cloudflare 等)
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # 模板引擎
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
@@ -1236,7 +1219,7 @@ async def get_private_file(request: Request, category: str, filename: str):
 if __name__ == "__main__":
     # 强制关闭 reload 以确保生产环境稳定
     # is_dev = os.getenv("ENV") != "production"
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8080))
     print(f"Server is starting on port {port}...")
     try:
         uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
