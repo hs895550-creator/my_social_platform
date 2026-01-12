@@ -1234,7 +1234,11 @@ async def get_private_file(request: Request, category: str, filename: str):
     return FileResponse(file_path)
 
 if __name__ == "__main__":
-    is_dev = os.getenv("ENV") != "production"
+    # 强制关闭 reload 以确保生产环境稳定
+    # is_dev = os.getenv("ENV") != "production"
     port = int(os.getenv("PORT", 8000))
-    print(f"Starting server on 0.0.0.0:{port}")
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=is_dev)
+    print(f"Server is starting on port {port}...")
+    try:
+        uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    except Exception as e:
+        print(f"Server failed to start: {e}")
