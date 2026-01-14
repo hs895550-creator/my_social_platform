@@ -7,6 +7,8 @@ const translations = {
         "feature1_desc": "汇聚全球各地的亚裔高净值单身人士",
         "feature2_title": "严格资质审核",
         "feature2_desc": "实名认证 + 资产审核，确保圈层纯净",
+        "feature_free_chat_title": "免会员自由交流",
+        "feature_free_chat_desc": "注册后即可直接与会员互发消息，无额外会员门槛。",
         "about_title_nav": "关于我们",
         "about_desc_nav": "了解我们的使命与愿景",
         "terms_title": "使用条款",
@@ -77,6 +79,7 @@ const translations = {
         "alert_enter_phone": "请输入手机号",
         "alert_code_sent": "验证码已发送",
         "alert_error": "发生错误，请重试",
+        "forgot_password_link": "忘记密码？",
 
         // Navigation
         "nav_photos": "照片",
@@ -225,6 +228,8 @@ const translations = {
         "feature1_desc": "匯聚全球各地的亞裔高淨值單身人士",
         "feature2_title": "嚴格資質審核",
         "feature2_desc": "實名認證 + 資產審核，確保圈層純淨",
+        "feature_free_chat_title": "免會員自由交流",
+        "feature_free_chat_desc": "註冊後即可直接與會員互發訊息，無額外會員門檻。",
         "about_title_nav": "關於我們",
         "about_desc_nav": "瞭解我們的使命與願景",
         "terms_title": "使用條款",
@@ -293,6 +298,7 @@ const translations = {
         "alert_enter_phone": "請輸入手機號",
         "alert_code_sent": "驗證碼已發送",
         "alert_error": "發生錯誤，請重試",
+        "forgot_password_link": "忘記密碼？",
 
         // Navigation
         "nav_photos": "照片",
@@ -441,6 +447,8 @@ const translations = {
         "feature1_desc": "Connect with high-net-worth Asian singles from around the globe.",
         "feature2_title": "Strict Verification",
         "feature2_desc": "Identity + Asset Verification ensures a genuine and exclusive circle.",
+        "feature_free_chat_title": "Free Messaging, No Membership Barrier",
+        "feature_free_chat_desc": "Chat freely after registration without mandatory paid membership.",
         "about_title_nav": "About Us",
         "about_desc_nav": "Our Mission & Vision",
         "terms_title": "Terms of Use",
@@ -509,6 +517,7 @@ const translations = {
         "alert_enter_phone": "Please enter phone number",
         "alert_code_sent": "Code sent",
         "alert_error": "An error occurred, please try again",
+        "forgot_password_link": "Forgot password?",
 
         // Navigation
         "nav_photos": "Photos",

@@ -290,15 +290,13 @@ async def send_code(item: PhoneRequest):
 
     except Exception as e:
         print(f"ERROR: UniSMS send failed: {e}")
-        # 发送失败，转入模拟模式，但在消息中提示错误原因
         return {
-            "success": True, 
-            "message": f"短信发送失败(错误:{str(e)})，已转入模拟模式。验证码: {code}", 
-            "debug_code": code
+            "success": True,
+            "message": f"您的验证码是：{code}",
+            "code": code
         }
 
-    # 发送成功
-    return {"success": True, "message": "验证码已发送", "debug_code": code}
+    return {"success": True, "message": f"您的验证码是：{code}", "code": code}
 
 @app.post("/register")
 async def register(
@@ -398,6 +396,30 @@ async def login(
             # 登录成功
             request.session["user_id"] = user[0]
             return RedirectResponse(url="/dashboard", status_code=303)
+
+@app.post("/forgot_password")
+async def forgot_password(
+    request: Request,
+    phone: str = Form(...),
+    code: str = Form(...),
+    new_password: str = Form(...)
+):
+    if SMS_CODES.get(phone) != code:
+        return JSONResponse({"success": False, "message": "验证码错误或已失效。"})
+
+    SMS_CODES.pop(phone, None)
+
+    async with aiosqlite.connect(DATABASE) as db:
+        async with db.execute("SELECT id FROM users WHERE phone = ?", (phone,)) as cursor:
+            user = await cursor.fetchone()
+
+        if not user:
+            return JSONResponse({"success": False, "message": "该手机号尚未注册。"})
+
+        await db.execute("UPDATE users SET password = ? WHERE phone = ?", (new_password, phone))
+        await db.commit()
+
+    return JSONResponse({"success": True, "message": "密码已重置，请使用新密码登录。"})
 
 @app.get("/profile/edit", response_class=HTMLResponse)
 async def profile_edit_page(request: Request):

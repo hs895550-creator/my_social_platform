@@ -150,17 +150,24 @@
                 </div>
             </div>
             <div class="feature-item">
-                <span class="feature-icon">🛡️</span>
+                <span class="feature-icon">�</span>
                 <div>
                     <h5><a href="/privacy" class="text-white text-decoration-none" data-i18n="privacy_title">隐私声明</a></h5>
                     <p data-i18n="privacy_desc">我们如何保护您的数据</p>
                 </div>
             </div>
             <div class="feature-item">
-                <span class="feature-icon">🔒</span>
+                <span class="feature-icon">�️</span>
                 <div>
                     <h5><a href="/safety" class="text-white text-decoration-none" data-i18n="safety_title">网络交友安全</a></h5>
                     <p data-i18n="safety_desc">安全交友指南与防骗提示</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">💬</span>
+                <div>
+                    <h5 data-i18n="feature_free_chat_title">免会员自由交流</h5>
+                    <p data-i18n="feature_free_chat_desc">注册后即可直接与会员互发消息，无额外会员门槛。</p>
                 </div>
             </div>
         </div>
@@ -170,6 +177,7 @@
             <div class="auth-card">
                 <div class="auth-header">
                     <h4 data-i18n="start_now">现在就开始！</h4>
+                    <div class="small mt-1" style="opacity:0.9;" data-i18n="feature_free_chat_title">免会员自由交流</div>
                 </div>
                 <div class="card-body p-4">
                     {% if error %}
@@ -229,22 +237,25 @@
                             </form>
                         </div>
 
-                        <!-- 登录表单 -->
-                        <div class="tab-pane fade {% if active_tab == 'login' %}show active{% endif %}" id="login" role="tabpanel">
-                            <form action="/login" method="post">
-                                <div class="mb-3">
-                                    <input type="tel" class="form-control" name="phone" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
-                                </div>
-                                <div class="mb-3">
-                                    <input type="password" class="form-control" name="password" placeholder="密码" data-i18n-placeholder="password_placeholder" required>
-                                </div>
-                                <div class="mb-3 form-check">
-                                    <input type="checkbox" class="form-check-input" id="remember">
-                                    <label class="form-check-label text-muted" for="remember" data-i18n="keep_logged_in">保持登录状态</label>
-                                </div>
-                                <button type="submit" class="btn btn-purple w-100 py-2" data-i18n="login_btn">登录</button>
-                            </form>
-                        </div>
+        <!-- 登录表单 -->
+        <div class="tab-pane fade {% if active_tab == 'login' %}show active{% endif %}" id="login" role="tabpanel">
+            <form action="/login" method="post">
+                <div class="mb-3">
+                    <input type="tel" class="form-control" name="phone" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" name="password" placeholder="密码" data-i18n-placeholder="password_placeholder" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember">
+                    <label class="form-check-label text-muted" for="remember" data-i18n="keep_logged_in">保持登录状态</label>
+                </div>
+                <div class="mb-3 text-end">
+                    <a href="#" class="small text-muted" onclick="openForgotPassword();return false;" data-i18n="forgot_password_link">忘记密码？</a>
+                </div>
+                <button type="submit" class="btn btn-purple w-100 py-2" data-i18n="login_btn">登录</button>
+            </form>
+        </div>
                     </div>
                 </div>
             </div>
@@ -529,7 +540,7 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                alert(data.message + " (Debug: " + getTrans('alert_code_sent') + ")");
+                alert(data.message);
                 // 倒计时逻辑
                 let btn = document.getElementById('btn-send-code');
                 let count = 60;
@@ -546,6 +557,68 @@
             } else {
                 alert(data.message);
             }
+        });
+    }
+
+    function openForgotPassword() {
+        const countrySelect = document.getElementById('country-select');
+        const loginPhoneInput = document.querySelector('#login input[name="phone"]');
+        const getTrans = (key) => {
+            const lang = localStorage.getItem('lang') || 'zh';
+            return (translations[lang] && translations[lang][key]) || (translations['en'] && translations['en'][key]) || key;
+        };
+
+        if (!loginPhoneInput) {
+            alert(getTrans('alert_error'));
+            return;
+        }
+
+        const phoneValue = loginPhoneInput.value.trim();
+        if (!phoneValue) {
+            alert('请先在上方输入您的手机号');
+            return;
+        }
+
+        const countryCode = countrySelect ? countrySelect.value : '';
+        const fullPhone = countryCode + phoneValue;
+
+        fetch('/send_code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: fullPhone })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert(data.message || getTrans('alert_error'));
+                return;
+            }
+
+            alert(data.message);
+
+            const inputCode = prompt('请输入您收到的验证码：');
+            if (!inputCode) {
+                return;
+            }
+
+            const newPassword = prompt('请输入新的登录密码：');
+            if (!newPassword) {
+                return;
+            }
+
+            fetch('/forgot_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    phone: fullPhone,
+                    code: inputCode.trim(),
+                    new_password: newPassword
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message || getTrans('alert_error'));
+            });
         });
     }
 
