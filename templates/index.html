@@ -239,9 +239,13 @@
 
         <!-- 登录表单 -->
         <div class="tab-pane fade {% if active_tab == 'login' %}show active{% endif %}" id="login" role="tabpanel">
-            <form action="/login" method="post">
-                <div class="mb-3">
-                    <input type="tel" class="form-control" name="phone" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
+            <form action="/login" method="post" onsubmit="return prepareLogin()">
+                <div class="mb-3 input-group">
+                    <select class="form-select" id="login-country-select" style="max-width: 120px;">
+                        <!-- JS 填充，与注册共用国家区号列表 -->
+                    </select>
+                    <input type="tel" class="form-control" id="login-phone-input" placeholder="手机号码" data-i18n-placeholder="phone_placeholder" required>
+                    <input type="hidden" name="phone" id="login-real-phone">
                 </div>
                 <div class="mb-3">
                     <input type="password" class="form-control" name="password" placeholder="密码" data-i18n-placeholder="password_placeholder" required>
@@ -459,11 +463,12 @@
     }
 
     function renderCountryOptions(lang) {
-        const select = document.getElementById('country-select');
-        if (!select || typeof countryCodes === 'undefined') return;
-
-        // 保存当前选中的值，以便重新渲染后恢复
-        const currentValue = select.value;
+        const selects = [];
+        const regSelect = document.getElementById('country-select');
+        const loginSelect = document.getElementById('login-country-select');
+        if (regSelect) selects.push(regSelect);
+        if (loginSelect) selects.push(loginSelect);
+        if (selects.length === 0 || typeof countryCodes === 'undefined') return;
 
         // 确定显示名称的字段
         // 如果是中文(zh或zh-TW)，优先使用name_zh，否则使用name
@@ -476,25 +481,24 @@
             return nameA.localeCompare(nameB, useChinese ? 'zh' : 'en');
         });
 
-        // 清空现有选项
-        select.innerHTML = '';
+        selects.forEach(select => {
+            const currentValue = select.value;
+            select.innerHTML = '';
 
-        countryCodes.forEach(c => {
-            const option = document.createElement('option');
-            option.value = c.dial_code;
-            // 显示格式：Name (+Code)
-            const displayName = useChinese ? (c.name_zh || c.name) : c.name;
-            option.text = `${displayName} (${c.dial_code})`;
-            
-            if (currentValue) {
-                if (c.dial_code === currentValue) option.selected = true;
-            } else {
-                if (c.code === 'US') option.selected = true; // 默认选美国
-            }
-            select.appendChild(option);
+            countryCodes.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.dial_code;
+                const displayName = useChinese ? (c.name_zh || c.name) : c.name;
+                option.text = `${displayName} (${c.dial_code})`;
+                if (currentValue) {
+                    if (c.dial_code === currentValue) option.selected = true;
+                } else {
+                    if (c.code === 'US') option.selected = true;
+                }
+                select.appendChild(option);
+            });
         });
-        
-        // 如果之前有选中值但现在没选中（可能逻辑变了），或者初始加载，更新隐藏字段
+
         updateCountry();
     }
 
@@ -561,7 +565,7 @@
     }
 
     function openForgotPassword() {
-        const countrySelect = document.getElementById('country-select');
+        const countrySelect = document.getElementById('login-country-select') || document.getElementById('country-select');
         const loginPhoneInput = document.querySelector('#login input[name="phone"]');
         const getTrans = (key) => {
             const lang = localStorage.getItem('lang') || 'zh';
@@ -638,6 +642,18 @@
                 realCountryInput.value = countryText;
             }
         
+        return true;
+    }
+
+    function prepareLogin() {
+        const select = document.getElementById('login-country-select');
+        const input = document.getElementById('login-phone-input');
+        const hidden = document.getElementById('login-real-phone');
+        if (!input || !hidden) return true;
+        const code = select ? select.value : '';
+        const phone = input.value.trim();
+        if (phone === '') return true;
+        hidden.value = code + phone;
         return true;
     }
 </script>
