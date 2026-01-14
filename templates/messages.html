@@ -104,7 +104,12 @@
         <div class="col-md-9">
             <div class="card shadow-sm">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><span data-i18n="inbox">收件箱</span> (6)</h5>
+                    <h5 class="mb-0">
+                        <span data-i18n="inbox">收件箱</span>
+                        {% if unread_messages_count is defined and unread_messages_count > 0 %}
+                        <span class="badge bg-danger rounded-pill ms-2">{{ unread_messages_count if unread_messages_count <= 99 else '99+' }}</span>
+                        {% endif %}
+                    </h5>
                     <div class="btn-group">
                          <button class="btn btn-outline-secondary btn-sm" data-i18n="mark_all_read">全部标记为已读</button>
                     </div>
@@ -127,7 +132,12 @@
                                     {% if m['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                                     <small class="text-muted fw-normal ms-2">{{ m['country'] }}</small>
                                 </h6>
+                                {% set uc = unread_by_sender[m['id']] if unread_by_sender and m['id'] in unread_by_sender else 0 %}
+                                {% if uc > 0 %}
+                                <span class="badge bg-danger rounded-pill">{{ uc if uc <= 99 else '99+' }}</span>
+                                {% else %}
                                 <small class="text-muted"><span data-i18n="activity_chat_btn">聊天</span></small>
+                                {% endif %}
                             </div>
                             <p class="mb-0 message-content text-truncate" style="max-width: 500px;">
                                 {% if last_msgs[m['id']] %}

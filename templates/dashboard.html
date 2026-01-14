@@ -11,7 +11,27 @@
             --primary-purple: #5e3a6e;
         }
         body {
-            background-color: #f0f2f5;
+            min-height: 100vh;
+            background: radial-gradient(circle at 0% 0%, #ffe6f0 0, #f0f2f5 40%, #e6f0ff 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(255,192,203,0.55) 0, transparent 55%),
+                radial-gradient(circle at 80% 75%, rgba(186,85,211,0.45) 0, transparent 55%),
+                radial-gradient(circle at 40% 90%, rgba(255,182,193,0.35) 0, transparent 60%);
+            opacity: 0.9;
+            animation: romanticFloat 28s linear infinite alternate;
+            z-index: -1;
+        }
+        @keyframes romanticFloat {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(0, -24px, 0); }
         }
         .navbar {
             background-color: var(--primary-purple);
@@ -70,7 +90,14 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link active" href="/dashboard" data-i18n="nav_home">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/messages"><span data-i18n="nav_messages">讯息</span> <span class="badge bg-danger rounded-pill">6</span></a></li>
+                <li class="nav-item position-relative">
+                    <a class="nav-link" href="/messages"><span data-i18n="nav_messages">讯息</span></a>
+                    {% if unread_messages_count is defined and unread_messages_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_messages_count if unread_messages_count <= 99 else '99+' }}
+                    </span>
+                    {% endif %}
+                </li>
                 <li class="nav-item"><a class="nav-link" href="/activity"><span data-i18n="nav_activity">活动纪录</span> <span class="badge bg-secondary rounded-pill">{{ activity_counts['likes'] + activity_counts['favorites'] + activity_counts['views'] + activity_counts['blocks'] }}</span></a></li>
             </ul>
             <span class="navbar-text text-white">
@@ -131,6 +158,8 @@
             <li><a class="dropdown-item" href="/profile/edit#basic" data-i18n="quick_personality">个性文档</a></li>
             <li><a class="dropdown-item" href="/verification" data-i18n="quick_verify">验证文档资料</a></li>
             <li><a class="dropdown-item" href="/safety" data-i18n="quick_imbra">IMBRA</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="enableBrowserNotify" data-i18n="quick_enable_notify">开启新消息浏览器通知</a></li>
         </ul>
     </div>
 </div>
@@ -272,6 +301,14 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var myModal = new bootstrap.Modal(document.getElementById('matchModal'));
+        var notifyBtn = document.getElementById('enableBrowserNotify');
+        if (notifyBtn) {
+            notifyBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                enableBrowserNotifications();
+            });
+        }
+        initMessageNotifications();
     });
 
     const chatPanel = document.createElement('div');
@@ -288,20 +325,24 @@
     chatPanel.style.display = 'none';
     chatPanel.style.flexDirection = 'column';
     chatPanel.style.zIndex = '1060';
-    chatPanel.innerHTML = '<div id="chatHeader" style="padding:12px;display:flex;justify-content:space-between;align-items:center;"></div><div id="chatMessages" style="padding:12px;overflow:auto;flex:1;background:#fff;color:#000"></div><form id="chatForm" style="padding:12px;border-top:1px solid #ddd;background:#fff"><div class="input-group"><input name="content" class="form-control" placeholder="输入消息..."/><button class="btn btn-primary" type="submit">发送</button></div></form>';
+    chatPanel.innerHTML = '<div id="chatHeader" style="padding:12px;display:flex;justify-content:space-between;align-items:center;"></div><div id="chatMessages" style="padding:12px;overflow:auto;flex:1;background:#fff;color:#000"></div><form id="chatForm" style="padding:12px;border-top:1px solid #ddd;background:#fff"><div class="mb-1"><button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😊</button><button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😂</button><button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😍</button><button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😘</button><button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😉</button></div><div class="input-group"><input name="content" class="form-control" placeholder="输入消息..."/><button class="btn btn-primary" type="submit">发送</button></div></form>';
     document.body.appendChild(chatPanel);
 
     let currentPeer = null;
+    let chatPollTimer = null;
     const CURRENT_USER_ID = Number('{{ user.id }}');
 
-    async function openChat(peerId) {
-        currentPeer = peerId;
-        const res = await fetch('/chat_box/' + peerId);
-        if (!res.ok) return;
-        const data = await res.json();
+    async function renderChatMessages(data) {
         const h = document.getElementById('chatHeader');
         const m = document.getElementById('chatMessages');
-        h.innerHTML = '<div class="d-flex align-items-center"><div class="rounded-circle me-2" style="width:28px;height:28px;background:#666;display:flex;align-items:center;justify-content:center;color:#fff;">' + ((data.peer.name||'会员').slice(0,1)) + '</div><div><strong>' + (data.peer.name||'会员') + '</strong> • ' + (data.peer.country||'') + '</div></div><button type="button" class="btn btn-sm btn-outline-light" id="chatClose">✕</button>';
+        if (!h || !m) return;
+        const name = data.peer.name || '会员';
+        let subtitle = data.peer.country || '';
+        if (data.peer.whatsapp_contact) {
+            subtitle += subtitle ? ' • ' : '';
+            subtitle += 'WhatsApp: ' + data.peer.whatsapp_contact;
+        }
+        h.innerHTML = '<div class="d-flex align-items-center"><div class="rounded-circle me-2" style="width:28px;height:28px;background:#666;display:flex;align-items:center;justify-content:center;color:#fff;">' + name.slice(0,1) + '</div><div><strong>' + name + '</strong><div class="small">' + subtitle + '</div></div></div><button type="button" class="btn btn-sm btn-outline-light" id="chatClose">✕</button>';
         m.innerHTML = '';
         data.msgs.forEach(x => {
             const mine = x.sender_id === CURRENT_USER_ID;
@@ -320,13 +361,52 @@
         });
         chatPanel.style.display = 'flex';
         m.scrollTop = m.scrollHeight;
-        document.getElementById('chatClose').onclick = () => { chatPanel.style.display = 'none'; };
+        const closeBtn = document.getElementById('chatClose');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                chatPanel.style.display = 'none';
+                if (chatPollTimer) {
+                    clearInterval(chatPollTimer);
+                    chatPollTimer = null;
+                }
+            };
+        }
+    }
+
+    async function fetchChat(peerId) {
+        const res = await fetch('/chat_box/' + peerId);
+        if (!res.ok) return null;
+        return await res.json();
+    }
+
+    async function openChat(peerId) {
+        currentPeer = peerId;
+        const data = await fetchChat(peerId);
+        if (!data) return;
+        renderChatMessages(data);
+        if (chatPollTimer) {
+            clearInterval(chatPollTimer);
+        }
+        chatPollTimer = setInterval(async () => {
+            if (!currentPeer) return;
+            const d = await fetchChat(currentPeer);
+            if (d) renderChatMessages(d);
+        }, 4000);
     }
 
     document.querySelectorAll('[data-chat]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             openChat(btn.getAttribute('data-chat'));
+        });
+    });
+
+    document.querySelectorAll('#chatPanel .chat-emoji').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = document.querySelector('#chatForm input[name="content"]');
+            if (!input) return;
+            input.value = input.value + this.textContent;
+            input.focus();
         });
     });
 
@@ -357,6 +437,156 @@
             input.value = '';
         }
     });
+
+    function getNotifyContainer() {
+        var container = document.querySelector('.notify-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.className = 'notify-container';
+            document.body.appendChild(container);
+        }
+        return container;
+    }
+
+    function showNewMessageToast(message, total) {
+        if (!message) return;
+        var container = getNotifyContainer();
+        var item = document.createElement('div');
+        item.className = 'notify-item';
+        var avatarBox;
+        if (message.sender_avatar) {
+            avatarBox = document.createElement('img');
+            avatarBox.src = message.sender_avatar;
+            avatarBox.className = 'notify-avatar';
+            avatarBox.alt = '头像';
+        } else {
+            avatarBox = document.createElement('div');
+            avatarBox.className = 'notify-avatar';
+            avatarBox.textContent = '👤';
+        }
+        var textBox = document.createElement('div');
+        var title = document.createElement('div');
+        title.className = 'notify-title';
+        var senderName = message.sender_name || '会员';
+        title.textContent = '来自 ' + senderName + ' 的新消息';
+        var sub = document.createElement('div');
+        sub.className = 'small text-white-50';
+        var preview = message.content_preview || message.content || '';
+        sub.textContent = preview;
+        textBox.appendChild(title);
+        textBox.appendChild(sub);
+        var actions = document.createElement('div');
+        actions.className = 'notify-actions';
+        var viewBtn = document.createElement('button');
+        viewBtn.type = 'button';
+        viewBtn.className = 'btn btn-sm btn-outline-light';
+        viewBtn.textContent = '立即查看';
+        viewBtn.addEventListener('click', function() {
+            if (typeof openChat === 'function') {
+                openChat(String(message.sender_id));
+            } else {
+                window.location.href = '/chat/' + message.sender_id;
+            }
+            container.removeChild(item);
+        });
+        var closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn btn-sm btn-outline-light';
+        closeBtn.textContent = '关闭';
+        closeBtn.addEventListener('click', function() {
+            container.removeChild(item);
+        });
+        actions.appendChild(viewBtn);
+        actions.appendChild(closeBtn);
+        item.appendChild(avatarBox);
+        item.appendChild(textBox);
+        item.appendChild(actions);
+        container.appendChild(item);
+        setTimeout(function() {
+            if (item.parentNode === container) {
+                container.removeChild(item);
+            }
+        }, 15000);
+    }
+
+    function browserNotificationEnabled() {
+        return typeof Notification !== 'undefined' && localStorage.getItem('ga_newmsg_notify_enabled') === '1' && Notification.permission === 'granted';
+    }
+
+    function enableBrowserNotifications() {
+        if (typeof Notification === 'undefined') {
+            alert('当前浏览器不支持通知功能');
+            return;
+        }
+        if (Notification.permission === 'granted') {
+            localStorage.setItem('ga_newmsg_notify_enabled', '1');
+            alert('已开启新消息浏览器通知');
+            return;
+        }
+        if (Notification.permission === 'denied') {
+            alert('您在浏览器中关闭了站点通知，请在浏览器设置中手动开启。');
+            return;
+        }
+        Notification.requestPermission().then(function(p) {
+            if (p === 'granted') {
+                localStorage.setItem('ga_newmsg_notify_enabled', '1');
+                alert('已开启新消息浏览器通知');
+            } else {
+                localStorage.removeItem('ga_newmsg_notify_enabled');
+            }
+        });
+    }
+
+    function sendBrowserNotification(message) {
+        if (!browserNotificationEnabled() || !message) return;
+        var senderName = message.sender_name || '会员';
+        var title = '来自 ' + senderName + ' 的新消息';
+        var body = message.content_preview || message.content || '';
+        var options = { body: body };
+        if (message.sender_avatar) {
+            options.icon = message.sender_avatar;
+        }
+        try {
+            new Notification(title, options);
+        } catch (e) {}
+    }
+
+    var lastUnreadState = { id: null, total: 0 };
+
+    function initMessageNotifications() {
+        if (!window.fetch) return;
+        refreshUnreadOnce();
+        setInterval(function() {
+            refreshUnreadOnce(true);
+        }, 9000);
+    }
+
+    function refreshUnreadOnce(emitOnChange) {
+        fetch('/api/unread_messages', { credentials: 'same-origin' })
+            .then(function(res) {
+                if (!res.ok) return null;
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data) return;
+                var total = data.total_unread || 0;
+                var msg = data.last_message;
+                if (!msg) {
+                    lastUnreadState = { id: null, total: total };
+                    return;
+                }
+                if (lastUnreadState.id === null || !emitOnChange) {
+                    lastUnreadState = { id: msg.id, total: total };
+                    return;
+                }
+                if (msg.id !== lastUnreadState.id || total > lastUnreadState.total) {
+                    lastUnreadState = { id: msg.id, total: total };
+                    showNewMessageToast(msg, total);
+                    sendBrowserNotification(msg);
+                }
+            })
+            .catch(function() {});
+    }
 </script>
 </body>
 </html>

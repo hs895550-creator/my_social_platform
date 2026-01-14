@@ -106,6 +106,10 @@ const translations = {
         "verify_step3_title": "3. 个人头像 (公开)",
         "verify_avatar_label": "上传一张展现您魅力的照片",
         "verify_avatar_help": "这是其他会员认识您的第一窗口，请上传清晰的本人生活照或职业照。",
+        "verify_step4_title": "4. 联系方式补充（可选）",
+        "verify_whatsapp_label": "填写您的 WhatsApp 联系方式（选填）",
+        "verify_whatsapp_placeholder": "例如：+60 1234 5678",
+        "verify_whatsapp_help": "仅在您与对方互相感兴趣并同意交流时，对方才有机会看到该联系方式。平台不会公开展示或用于群发营销。",
         "verify_submit_btn": "提交审核资料",
 
         // Profile Edit Page
@@ -162,6 +166,8 @@ const translations = {
         "upload_tip_5": "• 照片清晰光线明亮",
         "upload_tip_6": "• 请勿上传裸露不雅照片",
         "upload_alternative": "⬇ 无法上传照片?以其他方式上传»",
+        "member_photos_title": "照片",
+        "member_no_photos": "该会员尚未上传更多照片。",
 
         // Legal Terms
         "terms_heading": "使用条款",
@@ -544,6 +550,10 @@ const translations = {
         "verify_step3_title": "3. Profile Photo (Public)",
         "verify_avatar_label": "Upload a Charming Photo",
         "verify_avatar_help": "This is the first thing other members see. Please upload a clear life or professional photo of yourself.",
+        "verify_step4_title": "4. Optional Contact Detail",
+        "verify_whatsapp_label": "Add your WhatsApp contact (optional)",
+        "verify_whatsapp_placeholder": "e.g. +60 1234 5678",
+        "verify_whatsapp_help": "This contact is only shared when both of you are interested and agree to chat. It is not publicly listed and will not be used for bulk marketing.",
         "verify_submit_btn": "Submit for Review",
 
         // Profile Edit Page

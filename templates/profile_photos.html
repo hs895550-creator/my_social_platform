@@ -111,6 +111,14 @@
                 <li class="nav-item"><a class="nav-link active" href="/profile/photos" data-i18n="nav_photos">照片</a></li>
                 <li class="nav-item"><a class="nav-link" href="/verification" data-i18n="nav_verification">个人文档</a></li>
                 <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_match">佳缘条件</a></li>
+                <li class="nav-item position-relative">
+                    <a class="nav-link" href="/messages" data-i18n="nav_messages">讯息</a>
+                    {% if unread_messages_count is defined and unread_messages_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_messages_count if unread_messages_count <= 99 else '99+' }}
+                    </span>
+                    {% endif %}
+                </li>
                 <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">进入首页</a></li>
             </ul>
         </div>

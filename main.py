@@ -97,9 +97,11 @@ async def init_db():
                 match_age_min INTEGER,
                 match_age_max INTEGER,
                 asset_proof_path TEXT,
-                status TEXT DEFAULT 'pending_upload', -- pending_upload, pending_approval, active, rejected
+                status TEXT DEFAULT 'pending_upload',
                 is_ai BOOLEAN DEFAULT 0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                whatsapp_contact TEXT,
+                last_active_at TIMESTAMP
             )
         """)
         await db.execute("""
@@ -175,7 +177,7 @@ async def init_db():
             "marital_status TEXT", "smoking TEXT", "match_gender TEXT",
             "match_age_min INTEGER", "match_age_max INTEGER",
             "asset_proof_path TEXT", "is_ai BOOLEAN DEFAULT 0", "last_active_at TIMESTAMP",
-            "status TEXT DEFAULT 'pending_upload'"
+            "status TEXT DEFAULT 'pending_upload'", "whatsapp_contact TEXT"
         ]
         
         for col in new_columns:
@@ -506,10 +508,13 @@ async def profile_photos_page(request: Request):
                 return RedirectResponse(url="/status_check", status_code=303)
             return RedirectResponse(url="/verification", status_code=303)
 
+        async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
+            unread_messages_count = (await c.fetchone())[0]
+
         async with db.execute("SELECT photo_path FROM user_photos WHERE user_id = ? ORDER BY id DESC LIMIT 4", (user_id,)) as cursor:
             photos = await cursor.fetchall()
             
-    return templates.TemplateResponse("profile_photos.html", {"request": request, "user": user, "photos": photos})
+    return templates.TemplateResponse("profile_photos.html", {"request": request, "user": user, "photos": photos, "unread_messages_count": unread_messages_count})
 
 # 验证页面 (原 verification.html)
 @app.get("/verification", response_class=HTMLResponse)
@@ -526,7 +531,8 @@ async def verify(
     id_card_front: UploadFile = File(None),
     id_card_back: UploadFile = File(None),
     id_card_handheld: UploadFile = File(None),
-    asset_proof: UploadFile = File(None)
+    asset_proof: UploadFile = File(None),
+    whatsapp_contact: str = Form(None)
 ):
     user_id = request.session.get("user_id")
     if not user_id:
@@ -596,6 +602,8 @@ async def verify(
             await db.execute("UPDATE users SET id_card_handheld_path = ? WHERE id = ?", (id_card_handheld_path, user_id))
         if asset_proof_path:
             await db.execute("UPDATE users SET asset_proof_path = ? WHERE id = ?", (asset_proof_path, user_id))
+        if whatsapp_contact is not None and whatsapp_contact.strip() != "":
+            await db.execute("UPDATE users SET whatsapp_contact = ? WHERE id = ?", (whatsapp_contact.strip(), user_id))
 
         async with db.execute(
             """
@@ -665,9 +673,13 @@ async def messages_page(request: Request):
                 return RedirectResponse(url="/status_check", status_code=303)
             return RedirectResponse(url="/verification", status_code=303)
 
+        async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
+            unread_messages_count = (await c.fetchone())[0]
+
         async with db.execute("SELECT id, name, country, avatar_path, is_verified, is_ai FROM users WHERE id != ? ORDER BY id DESC LIMIT 50", (user_id,)) as cursor:
             members = await cursor.fetchall()
         last_msgs = {}
+        unread_by_sender = {}
         for m in members:
             async with db.execute(
                 """
@@ -679,8 +691,11 @@ async def messages_page(request: Request):
             ) as cur:
                 row = await cur.fetchone()
                 last_msgs[m["id"]] = row
+            async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL", (user_id, m["id"])) as cu:
+                cnt_row = await cu.fetchone()
+                unread_by_sender[m["id"]] = cnt_row[0]
             
-    return templates.TemplateResponse("messages.html", {"request": request, "user": user, "members": members, "last_msgs": last_msgs})
+    return templates.TemplateResponse("messages.html", {"request": request, "user": user, "members": members, "last_msgs": last_msgs, "unread_messages_count": unread_messages_count, "unread_by_sender": unread_by_sender})
 
 @app.get("/member/{member_id}", response_class=HTMLResponse)
 async def member_page(request: Request, member_id: int):
@@ -689,10 +704,8 @@ async def member_page(request: Request, member_id: int):
         return RedirectResponse(url="/", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
-        # 检查当前用户状态
         async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
             current_user = await cursor.fetchone()
-        
         if current_user["status"] != "active":
             if current_user["status"] in ("pending_approval", "rejected"):
                 return RedirectResponse(url="/status_check", status_code=303)
@@ -700,16 +713,37 @@ async def member_page(request: Request, member_id: int):
 
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
         await db.commit()
-        
+
+        async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
+            unread_messages_count = (await c.fetchone())[0]
+
         async with db.execute("SELECT id, name, gender, age_range, country, city, avatar_path, is_verified, is_ai FROM users WHERE id = ?", (member_id,)) as cursor:
             member = await cursor.fetchone()
         if not member:
             raise HTTPException(status_code=404, detail="用户不存在")
+
+        async with db.execute("SELECT photo_path FROM user_photos WHERE user_id = ? ORDER BY id DESC LIMIT 4", (member_id,)) as cursor:
+            photos = await cursor.fetchall()
+
+        mutual_like = False
+        whatsapp = None
+        if user_id != member_id:
+            async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (user_id, member_id)) as c1:
+                liked_by_me = await c1.fetchone()
+            async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (member_id, user_id)) as c2:
+                liked_me = await c2.fetchone()
+            if liked_by_me and liked_me:
+                mutual_like = True
+                async with db.execute("SELECT whatsapp_contact FROM users WHERE id = ?", (member_id,)) as c3:
+                    row = await c3.fetchone()
+                if row and row[0]:
+                    whatsapp = row[0]
+
         if user_id != member_id:
             await db.execute("INSERT INTO profile_views (viewer_id, viewed_id) VALUES (?, ?)", (user_id, member_id))
             await db.execute("INSERT INTO notifications (recipient_id, actor_id, type) VALUES (?, ?, 'view')", (member_id, user_id))
             await db.commit()
-    return templates.TemplateResponse("member.html", {"request": request, "member": member})
+    return templates.TemplateResponse("member.html", {"request": request, "member": member, "photos": photos, "whatsapp": whatsapp, "mutual_like": mutual_like, "unread_messages_count": unread_messages_count})
 
 @app.get(f"{ADMIN_PREFIX}/users", response_class=HTMLResponse)
 async def admin_users(request: Request):
@@ -722,10 +756,8 @@ async def chat_page(request: Request, peer_id: int):
         return RedirectResponse(url="/", status_code=303)
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
-        # 检查当前用户状态
         async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
             current_user = await cursor.fetchone()
-        
         if current_user["status"] != "active":
             if current_user["status"] in ("pending_approval", "rejected"):
                 return RedirectResponse(url="/status_check", status_code=303)
@@ -733,11 +765,20 @@ async def chat_page(request: Request, peer_id: int):
 
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
         await db.commit()
-        
-        async with db.execute("SELECT id, name, avatar_path, country, is_verified FROM users WHERE id = ?", (peer_id,)) as cursor:
-            peer = await cursor.fetchone()
-        if not peer:
+
+        async with db.execute("SELECT id, name, avatar_path, country, is_verified, whatsapp_contact FROM users WHERE id = ?", (peer_id,)) as cursor:
+            peer_row = await cursor.fetchone()
+        if not peer_row:
             raise HTTPException(status_code=404, detail="用户不存在")
+
+        async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (user_id, peer_id)) as c1:
+            liked_by_me = await c1.fetchone()
+        async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (peer_id, user_id)) as c2:
+            liked_me = await c2.fetchone()
+        peer = dict(peer_row)
+        if not (liked_by_me and liked_me):
+            peer["whatsapp_contact"] = None
+
         async with db.execute(
             """
             SELECT sender_id, receiver_id, content, created_at FROM messages
@@ -749,7 +790,9 @@ async def chat_page(request: Request, peer_id: int):
             msgs = await cursor.fetchall()
         await db.execute("UPDATE messages SET read_at = CURRENT_TIMESTAMP WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL", (user_id, peer_id))
         await db.commit()
-    return templates.TemplateResponse("chat.html", {"request": request, "peer": peer, "msgs": msgs})
+        async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
+            unread_messages_count = (await c.fetchone())[0]
+    return templates.TemplateResponse("chat.html", {"request": request, "peer": peer, "msgs": msgs, "unread_messages_count": unread_messages_count})
 
 @app.post("/chat/{peer_id}/send")
 async def chat_send(request: Request, peer_id: int, content: str = Form(...)):
@@ -776,17 +819,24 @@ async def chat_box(request: Request, peer_id: int):
         raise HTTPException(status_code=401, detail="未登录")
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
-        
-        # 检查状态
         async with db.execute("SELECT status FROM users WHERE id = ?", (user_id,)) as cursor:
             current_user = await cursor.fetchone()
         if current_user["status"] != "active":
              raise HTTPException(status_code=403, detail="Account not active")
 
-        async with db.execute("SELECT id, name, age_range, country, city, avatar_path, is_verified FROM users WHERE id = ?", (peer_id,)) as cursor:
-            peer = await cursor.fetchone()
-        if not peer:
+        async with db.execute("SELECT id, name, age_range, country, city, avatar_path, is_verified, whatsapp_contact FROM users WHERE id = ?", (peer_id,)) as cursor:
+            peer_row = await cursor.fetchone()
+        if not peer_row:
             raise HTTPException(status_code=404, detail="用户不存在")
+
+        async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (user_id, peer_id)) as c1:
+            liked_by_me = await c1.fetchone()
+        async with db.execute("SELECT 1 FROM likes WHERE liker_id = ? AND liked_id = ? LIMIT 1", (peer_id, user_id)) as c2:
+            liked_me = await c2.fetchone()
+        peer = dict(peer_row)
+        if not (liked_by_me and liked_me):
+            peer["whatsapp_contact"] = None
+
         async with db.execute(
             """
             SELECT sender_id, receiver_id, content, created_at FROM messages
@@ -799,7 +849,7 @@ async def chat_box(request: Request, peer_id: int):
         await db.execute("UPDATE messages SET read_at = CURRENT_TIMESTAMP WHERE receiver_id = ? AND sender_id = ? AND read_at IS NULL", (user_id, peer_id))
         await db.commit()
     return {
-        "peer": dict(peer),
+        "peer": peer,
         "msgs": [
             {"sender_id": m[0], "receiver_id": m[1], "content": m[2], "created_at": m[3]} for m in msgs
         ]
@@ -822,6 +872,50 @@ async def chat_box_send(request: Request, peer_id: int, content: str = Form(...)
         await db.execute("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)", (user_id, peer_id, content.strip()))
         await db.commit()
     return {"ok": True}
+
+@app.get("/api/unread_messages")
+async def api_unread_messages(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="未登录")
+    async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT COUNT(*) AS cnt, MAX(id) AS last_id FROM messages WHERE receiver_id = ? AND read_at IS NULL",
+            (user_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+        total_unread = row[0] if row and row[0] is not None else 0
+        last_id = row[1] if row and row[1] is not None else None
+        last_message = None
+        if last_id is not None:
+            async with db.execute(
+                """
+                SELECT m.id, m.content, m.sender_id, m.created_at,
+                       u.name AS sender_name, u.avatar_path AS sender_avatar
+                FROM messages m
+                JOIN users u ON u.id = m.sender_id
+                WHERE m.id = ?
+                """,
+                (last_id,)
+            ) as cursor:
+                last_message = await cursor.fetchone()
+    if not last_message:
+        return {"total_unread": total_unread, "last_message": None}
+    content = last_message[1] or ""
+    preview = content if len(content) <= 60 else content[:57] + "..."
+    return {
+        "total_unread": total_unread,
+        "last_message": {
+            "id": last_message[0],
+            "content": content,
+            "content_preview": preview,
+            "sender_id": last_message[2],
+            "created_at": last_message[3],
+            "sender_name": last_message[4],
+            "sender_avatar": last_message[5],
+        },
+    }
 
 @app.get("/status_check", response_class=HTMLResponse)
 async def status_check(request: Request):
@@ -855,7 +949,6 @@ async def dashboard(request: Request):
     async with aiosqlite.connect(DATABASE) as db:
         await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
         await db.commit()
-        # 获取当前用户信息
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
             current_user = await cursor.fetchone()
@@ -872,6 +965,9 @@ async def dashboard(request: Request):
             else:
                 # 包括 pending_upload 和可能存在的 NULL (老用户)
                 return RedirectResponse(url="/verification", status_code=303)
+
+        async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
+            unread_messages_count = (await c.fetchone())[0]
 
         f = request.query_params.get("filter")
         s = request.query_params.get("sort")
@@ -948,7 +1044,8 @@ async def dashboard(request: Request):
         "activity_counts": activity_counts,
         "filter": f or "",
         "sort": s or "",
-        "country_filter": country_filter or ""
+        "country_filter": country_filter or "",
+        "unread_messages_count": unread_messages_count
     })
 
 @app.get("/activity", response_class=HTMLResponse)
@@ -1195,7 +1292,7 @@ async def admin_export_users(request: Request):
     async with aiosqlite.connect(DATABASE) as db:
         db.row_factory = aiosqlite.Row
         query = """
-        SELECT id, phone, gender, age_range, country, status, created_at
+        SELECT id, phone, gender, age_range, country, whatsapp_contact, status, created_at
         FROM users
         ORDER BY id DESC
         """
@@ -1204,7 +1301,7 @@ async def admin_export_users(request: Request):
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["ID", "Phone", "Gender", "AgeRange", "Country", "Status", "CreatedAt"])
+    writer.writerow(["ID", "Phone", "Gender", "AgeRange", "Country", "WhatsApp", "Status", "CreatedAt"])
     for row in rows:
         writer.writerow([
             row["id"],
@@ -1212,6 +1309,7 @@ async def admin_export_users(request: Request):
             row["gender"] or "",
             row["age_range"] or "",
             row["country"] or "",
+            row["whatsapp_contact"] or "",
             row["status"] or "",
             row["created_at"] or "",
         ])

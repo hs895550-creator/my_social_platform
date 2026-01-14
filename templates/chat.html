@@ -24,7 +24,14 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
-                <li class="nav-item"><a class="nav-link active" href="/messages" data-i18n="nav_messages">讯息</a></li>
+                <li class="nav-item position-relative">
+                    <a class="nav-link active" href="/messages" data-i18n="nav_messages">讯息</a>
+                    {% if unread_messages_count is defined and unread_messages_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_messages_count if unread_messages_count <= 99 else '99+' }}
+                    </span>
+                    {% endif %}
+                </li>
             </ul>
         </div>
     </div>
@@ -32,17 +39,20 @@
 
 <div class="chat-container">
     <div class="card shadow-sm">
-        <div class="card-header bg-white d-flex align-items-center">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between">
             {% if peer['avatar_path'] %}
             <img src="{{ peer['avatar_path'] }}" class="rounded-circle me-3" style="width:40px;height:40px;object-fit:cover;">
             {% else %}
             <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">{{ (peer['name'] or 'M')[:1] }}</div>
             {% endif %}
-            <div>
+            <div class="flex-grow-1">
                 <strong>{% if peer['name'] %}{{ peer['name'] }}{% else %}<span data-i18n="member_default">会员</span>{% endif %}</strong>
                 {% if peer['is_ai'] %}<span class="badge bg-info ms-2" data-i18n="ai_badge">系统助手</span>{% endif %}
                 {% if peer['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
                 <div class="text-muted small">{{ peer['country'] }}</div>
+                {% if peer['whatsapp_contact'] %}
+                <div class="text-success small mt-1">已互相点赞，可通过 WhatsApp 联系：<span class="fw-bold">{{ peer['whatsapp_contact'] }}</span></div>
+                {% endif %}
             </div>
         </div>
         <div class="card-body" id="messages">
@@ -56,6 +66,13 @@
             {% endfor %}
         </div>
         <div class="card-footer bg-white">
+            <div class="mb-2">
+                <button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😊</button>
+                <button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😂</button>
+                <button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😍</button>
+                <button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😘</button>
+                <button type="button" class="btn btn-sm btn-light me-1 chat-emoji">😉</button>
+            </div>
             <form action="/chat/{{ peer['id'] }}/send" method="post" class="d-flex gap-2">
                 <input type="text" class="form-control" name="content" placeholder="输入消息..." data-i18n-placeholder="chat_input_placeholder" required>
                 <button class="btn btn-primary" data-i18n="chat_send_btn">发送</button>
@@ -70,6 +87,45 @@
     document.addEventListener('DOMContentLoaded', () => {
         const lang = localStorage.getItem('lang') || 'zh';
         applyLanguage(lang);
+
+        document.querySelectorAll('.chat-emoji').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const input = document.querySelector('input[name="content"]');
+                if (!input) return;
+                input.value = input.value + this.textContent;
+                input.focus();
+            });
+        });
+
+        async function refreshMessages() {
+            try {
+                const res = await fetch('/chat_box/{{ peer["id"] }}');
+                if (!res.ok) return;
+                const data = await res.json();
+                const container = document.getElementById('messages');
+                if (!container) return;
+                container.innerHTML = '';
+                data.msgs.forEach(m => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'd-flex ' + (m.sender_id !== {{ peer['id'] }} ? 'justify-content-end' : 'justify-content-start');
+                    const box = document.createElement('div');
+                    box.className = 'msg ' + (m.sender_id !== {{ peer['id'] }} ? 'from-me' : 'from-peer');
+                    const time = document.createElement('div');
+                    time.className = 'small text-muted';
+                    time.textContent = m.created_at;
+                    const text = document.createElement('div');
+                    text.textContent = m.content;
+                    box.appendChild(time);
+                    box.appendChild(text);
+                    wrap.appendChild(box);
+                    container.appendChild(wrap);
+                });
+                container.scrollTop = container.scrollHeight;
+            } catch (e) {
+            }
+        }
+
+        setInterval(refreshMessages, 4000);
     });
 </script>
 </body>

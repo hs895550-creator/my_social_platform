@@ -19,7 +19,14 @@
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="/dashboard" data-i18n="nav_home">首页</a></li>
-                <li class="nav-item"><a class="nav-link" href="/messages" data-i18n="nav_messages">讯息</a></li>
+                <li class="nav-item position-relative">
+                    <a class="nav-link" href="/messages" data-i18n="nav_messages">讯息</a>
+                    {% if unread_messages_count is defined and unread_messages_count > 0 %}
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ unread_messages_count if unread_messages_count <= 99 else '99+' }}
+                    </span>
+                    {% endif %}
+                </li>
             </ul>
         </div>
     </div>
@@ -55,12 +62,42 @@
                             <button type="submit" class="btn btn-outline-danger" data-i18n="btn_block">封锁</button>
                         </form>
                         <a href="/chat/{{ member['id'] }}" class="btn btn-primary" data-i18n="btn_message">发私信</a>
+                        {% if whatsapp %}
+                        <div class="mt-3 alert alert-success small mb-0">
+                            <div>双方已互相点赞，可通过 WhatsApp 进一步交流：</div>
+                            <div class="fw-bold">{{ whatsapp }}</div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header bg-white" data-i18n="member_photos_title">照片</div>
+                <div class="card-body">
+                    {% if member['avatar_path'] or photos %}
+                    <div class="row g-2">
+                        <div class="col-4 col-md-3">
+                            {% if member['avatar_path'] %}
+                            <img src="{{ member['avatar_path'] }}" class="img-fluid rounded" alt="头像">
+                            {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height:100px;">{{ (member['name'] or '会员')[0] }}</div>
+                            {% endif %}
+                        </div>
+                        {% for p in photos %}
+                        <div class="col-4 col-md-3">
+                            <img src="{{ p['photo_path'] }}" class="img-fluid rounded" alt="照片">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-muted small" data-i18n="member_no_photos">该会员尚未上传更多照片。</div>
+                    {% endif %}
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header bg-white" data-i18n="profile_intro_title">简介</div>
                 <div class="card-body">
