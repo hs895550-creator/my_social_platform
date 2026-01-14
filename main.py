@@ -1,5 +1,5 @@
 import uvicorn
-from fastapi import FastAPI, Request, Form, Depends, HTTPException, status, UploadFile, File
+from fastapi import FastAPI, Request, Form, Depends, HTTPException, status, UploadFile, File, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -8,9 +8,13 @@ from pydantic import BaseModel
 import aiosqlite
 import os
 import random
+import time
 import shutil
 import uuid
 import traceback
+import io
+import csv
+import datetime
 
 try:
     from uni.client import UniClient
@@ -25,7 +29,7 @@ async def health_check():
     return {"status": "ok"}
 
 # 配置
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")  # 生产环境请使用环境变量覆盖
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 # UniSMS 配置
 UNISMS_ACCESS_KEY_ID = "kFWQ7AsDxdxARQSpaXZQx1uiKdNBWn8fx7kXgPAMAFqXvXiXP"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,11 +37,12 @@ DATABASE = os.path.join(BASE_DIR, "social.db")
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
 PRIVATE_UPLOAD_DIR = os.path.join(BASE_DIR, "private_uploads")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")  # 简单演示用管理员密码
-ADMIN_PREFIX = "/admin_secure_x9z"  # 后台安全路径前缀
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+ADMIN_PREFIX = os.getenv("ADMIN_PREFIX", "/admin_secure_x9z_93af7p")
 
-# 模拟短信验证码存储 {phone: code}
 SMS_CODES = {}
+ADMIN_LOGIN_ATTEMPTS = {}
+ADMIN_LOGIN_BLOCKED = {}
 
 # 确保上传目录存在
 os.makedirs(os.path.join(UPLOAD_DIR, "avatars"), exist_ok=True)
@@ -47,27 +52,19 @@ os.makedirs(os.path.join(PRIVATE_UPLOAD_DIR, "assets"), exist_ok=True)
 # 挂载静态文件
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# 添加 Session 中间件用于保持登录状态
-app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
+app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY, same_site="lax")
 
 # 模板引擎
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
-# --- 优先路由：后台入口重定向 ---
-# 必须放在最前面，防止被静态文件或其他通配符拦截
 @app.get("/admin", include_in_schema=False)
 @app.get("/admin/", include_in_schema=False)
 async def admin_alias_root(request: Request):
-    """
-    重定向 /admin 到真正的后台登录页。
-    """
-    print(f"Redirecting /admin to {ADMIN_PREFIX}/login")
-    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+    raise HTTPException(status_code=404)
 
 @app.get("/admin/login", include_in_schema=False)
 async def admin_login_alias_root(request: Request):
-    return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
-# --------------------------------
+    raise HTTPException(status_code=404)
 
 # 数据库初始化
 async def init_db():
@@ -379,21 +376,40 @@ async def login(
     password: str = Form(...)
 ):
     ip = get_client_ip(request)
+    now = time.time()
+
+    blocked_until = ADMIN_LOGIN_BLOCKED.get(f"user:{ip}")
+    if blocked_until and now < blocked_until:
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "error": "尝试次数过多，请稍后再试。",
+            "active_tab": "login"
+        })
     async with aiosqlite.connect(DATABASE) as db:
         async with db.execute("SELECT id, password FROM users WHERE phone = ?", (phone,)) as cursor:
             user = await cursor.fetchone()
             if not user or user[1] != password:
+                attempt_key = f"user:{ip}"
+                attempt = ADMIN_LOGIN_ATTEMPTS.get(attempt_key)
+                if not attempt or now - attempt["first"] > 600:
+                    ADMIN_LOGIN_ATTEMPTS[attempt_key] = {"count": 1, "first": now}
+                else:
+                    attempt["count"] += 1
+                    if attempt["count"] >= 10:
+                        ADMIN_LOGIN_BLOCKED[attempt_key] = now + 600
+                        ADMIN_LOGIN_ATTEMPTS.pop(attempt_key, None)
+
                 return templates.TemplateResponse("index.html", {
                     "request": request,
                     "error": "账号或密码错误。",
                     "active_tab": "login"
                 })
             
-            # 更新登录 IP
             await db.execute("UPDATE users SET ip_address = ? WHERE id = ?", (ip, user[0]))
             await db.commit()
 
-            # 登录成功
+            ADMIN_LOGIN_ATTEMPTS.pop(f"user:{ip}", None)
+            ADMIN_LOGIN_BLOCKED.pop(f"user:{ip}", None)
             request.session["user_id"] = user[0]
             return RedirectResponse(url="/dashboard", status_code=303)
 
@@ -1122,9 +1138,28 @@ async def admin_login_page(request: Request):
 
 @app.post(f"{ADMIN_PREFIX}/login")
 async def admin_login(request: Request, password: str = Form(...)):
+    ip = get_client_ip(request)
+    now = time.time()
+
+    blocked_until = ADMIN_LOGIN_BLOCKED.get(ip)
+    if blocked_until and now < blocked_until:
+        return templates.TemplateResponse("admin_login.html", {"request": request, "error": "尝试次数过多，请稍后再试。", "admin_prefix": ADMIN_PREFIX})
+
     if password == ADMIN_PASSWORD:
+        ADMIN_LOGIN_ATTEMPTS.pop(ip, None)
+        ADMIN_LOGIN_BLOCKED.pop(ip, None)
         request.session["is_admin"] = True
         return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
+
+    attempt = ADMIN_LOGIN_ATTEMPTS.get(ip)
+    if not attempt or now - attempt["first"] > 600:
+        ADMIN_LOGIN_ATTEMPTS[ip] = {"count": 1, "first": now}
+    else:
+        attempt["count"] += 1
+        if attempt["count"] >= 5:
+            ADMIN_LOGIN_BLOCKED[ip] = now + 600
+            ADMIN_LOGIN_ATTEMPTS.pop(ip, None)
+
     return templates.TemplateResponse("admin_login.html", {"request": request, "error": "密码错误", "admin_prefix": ADMIN_PREFIX})
 
 @app.get(f"{ADMIN_PREFIX}/dashboard", response_class=HTMLResponse)
@@ -1150,6 +1185,42 @@ async def admin_dashboard(request: Request, status: str = "pending_approval"):
         "current_status": status,
         "admin_prefix": ADMIN_PREFIX
     })
+
+
+@app.get(f"{ADMIN_PREFIX}/export/users")
+async def admin_export_users(request: Request):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login")
+
+    async with aiosqlite.connect(DATABASE) as db:
+        db.row_factory = aiosqlite.Row
+        query = """
+        SELECT id, phone, gender, age_range, country, status, created_at
+        FROM users
+        ORDER BY id DESC
+        """
+        async with db.execute(query) as cursor:
+            rows = await cursor.fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Phone", "Gender", "AgeRange", "Country", "Status", "CreatedAt"])
+    for row in rows:
+        writer.writerow([
+            row["id"],
+            row["phone"],
+            row["gender"] or "",
+            row["age_range"] or "",
+            row["country"] or "",
+            row["status"] or "",
+            row["created_at"] or "",
+        ])
+
+    content = output.getvalue()
+    output.close()
+    filename = f"users_export_{datetime.datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+
+    return Response(content, media_type="text/csv", headers={"Content-Disposition": f"attachment; filename=\"{filename}\""})
 
 
 @app.get(f"{ADMIN_PREFIX}/debug")
