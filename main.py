@@ -718,36 +718,14 @@ async def member_page(request: Request, member_id: int):
         async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
             unread_messages_count = (await c.fetchone())[0]
 
-        async with db.execute(
-            """
-            SELECT
-                id,
-                name,
-                gender,
-                age_range,
-                country,
-                city,
-                avatar_path,
-                is_verified,
-                is_ai,
-                state,
-                hair_color,
-                eye_color,
-                height,
-                weight,
-                marital_status,
-                smoking,
-                match_gender,
-                match_age_min,
-                match_age_max,
-                self_intro
-            FROM users WHERE id = ?
-            """,
-            (member_id,),
-        ) as cursor:
-            member = await cursor.fetchone()
-        if not member:
+        async with db.execute("SELECT * FROM users WHERE id = ?", (member_id,)) as cursor:
+            member_row = await cursor.fetchone()
+        if not member_row:
             raise HTTPException(status_code=404, detail="用户不存在")
+
+        member = dict(member_row)
+        if "self_intro" not in member:
+            member["self_intro"] = None
 
         async with db.execute("SELECT photo_path FROM user_photos WHERE user_id = ? ORDER BY id DESC LIMIT 4", (member_id,)) as cursor:
             photos = await cursor.fetchall()
