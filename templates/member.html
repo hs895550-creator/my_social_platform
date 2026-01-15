@@ -101,7 +101,46 @@
             <div class="card">
                 <div class="card-header bg-white" data-i18n="profile_intro_title">简介</div>
                 <div class="card-body">
+                    {% if member['self_intro'] %}
+                    <p class="mb-3" style="white-space:pre-wrap;">{{ member['self_intro'] }}</p>
+                    {% endif %}
+                    {% set has_profile = member['marital_status'] or member['height'] or member['weight'] or member['smoking'] or member['hair_color'] or member['eye_color'] or member['match_gender'] or member['match_age_min'] or member['match_age_max'] %}
+                    {% if has_profile %}
+                    <ul class="list-unstyled text-muted mb-0">
+                        {% if member['marital_status'] %}
+                        <li>婚姻状况：{{ member['marital_status'] }}</li>
+                        {% endif %}
+                        {% if member['height'] %}
+                        <li>身高：{{ member['height'] }}</li>
+                        {% endif %}
+                        {% if member['weight'] %}
+                        <li>体重：{{ member['weight'] }}</li>
+                        {% endif %}
+                        {% if member['smoking'] %}
+                        <li>是否吸烟：{{ member['smoking'] }}</li>
+                        {% endif %}
+                        {% if member['hair_color'] %}
+                        <li>发色：{{ member['hair_color'] }}</li>
+                        {% endif %}
+                        {% if member['eye_color'] %}
+                        <li>眼睛颜色：{{ member['eye_color'] }}</li>
+                        {% endif %}
+                        {% if member['match_gender'] or member['match_age_min'] or member['match_age_max'] %}
+                        <li>
+                            期望对象：
+                            {% if member['match_gender'] == 'male' %}男士{% elif member['match_gender'] == 'female' %}女士{% else %}性别不限{% endif %}
+                            {% if member['match_age_min'] or member['match_age_max'] %}
+                                ，年龄
+                                {% if member['match_age_min'] %}{{ member['match_age_min'] }}{% endif %}
+                                {% if member['match_age_min'] and member['match_age_max'] %} - {% endif %}
+                                {% if member['match_age_max'] %}{{ member['match_age_max'] }}{% endif %}
+                            {% endif %}
+                        </li>
+                        {% endif %}
+                    </ul>
+                    {% elif not member['self_intro'] %}
                     <p class="text-muted" data-i18n="profile_intro_empty">该会员尚未填写更多资料。</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

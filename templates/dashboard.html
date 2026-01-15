@@ -79,6 +79,49 @@
         .notify-title { font-weight: 600; }
         .notify-actions { margin-left: auto; display:flex; gap:8px; }
         .notify-actions form { display:inline; }
+        .member-card {
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.96);
+        }
+        .member-card-inner {
+            display: flex;
+            height: 100%;
+        }
+        .member-photo {
+            width: 42%;
+            min-height: 220px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .member-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .member-info {
+            width: 58%;
+            padding: 10px 12px 8px;
+            display: flex;
+            flex-direction: column;
+            font-size: 0.9rem;
+        }
+        .member-name-line {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .member-meta {
+            font-size: 0.8rem;
+        }
+        .member-actions button.btn-link {
+            padding: 0;
+            border: 0;
+        }
+        .member-actions .icon-btn {
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -267,27 +310,68 @@
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 {% for m in members %}
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        {% if m['avatar_path'] %}
-                        <a href="/member/{{ m['id'] }}"><img src="{{ m['avatar_path'] }}" style="height:250px; object-fit:cover;" alt="头像"></a>
-                        {% else %}
-                        <a href="/member/{{ m['id'] }}" class="text-decoration-none d-block" style="height: 250px;">
-                            <div style="height: 100%; background: #eee; display: flex; align-items: center; justify-content: center; color: #aaa; cursor:pointer;">
-                                {{ (m['name'] or '用户')[0] if m['name'] else '用户' }}
+                    <div class="member-card card shadow-sm h-100" data-member-id="{{ m['id'] }}">
+                        <div class="member-card-inner">
+                            <a href="/member/{{ m['id'] }}" class="member-photo text-decoration-none">
+                                {% if m['avatar_path'] %}
+                                <img src="{{ m['avatar_path'] }}" alt="头像">
+                                {% else %}
+                                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:2rem;">{{ (m['name'] or '用户')[0] if m['name'] else '用户' }}</div>
+                                {% endif %}
+                            </a>
+                            <div class="member-info">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <div class="member-name-line">
+                                            <a href="/member/{{ m['id'] }}" class="text-decoration-none text-dark">{{ m['name'] or ('会员'+m['id']|string) }}</a>
+                                            {% if m['is_verified'] %}<span class="badge bg-success ms-1" style="font-size:0.7rem;" data-i18n="verified_badge">已实名认证</span>{% endif %}
+                                        </div>
+                                        <div class="member-meta text-muted">
+                                            {{ m['age_range'] }}
+                                            {% if m['country'] %} · {{ m['country'] }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if m['is_new'] %}
+                                        <div><span class="badge bg-success" style="font-size:0.7rem;">新会员</span></div>
+                                        {% endif %}
+                                        <div class="mt-1">
+                                            {% if m['is_online'] %}
+                                            <span class="badge rounded-pill bg-success" style="font-size:0.7rem;" data-online-badge="1">在线</span>
+                                            {% else %}
+                                            <span class="badge rounded-pill bg-secondary" style="font-size:0.7rem;" data-online-badge="1">离线</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-2 text-muted" style="font-size:0.8rem;">
+                                    寻找:
+                                    {% if m['match_gender'] == 'male' %} 男性{% elif m['match_gender'] == 'female' %} 女性{% else %} 不限{% endif %}
+                                    {% if m['match_age_min'] and m['match_age_max'] %}
+                                        ，{{ m['match_age_min'] }}-{{ m['match_age_max'] }}
+                                    {% endif %}
+                                </div>
+                                <div class="member-actions d-flex justify-content-between align-items-center mt-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <form action="/like/{{ m['id'] }}" method="post" class="d-inline">
+                                            <button class="btn btn-link icon-btn text-muted" type="submit">❤</button>
+                                        </form>
+                                        <button type="button" class="btn btn-link icon-btn text-muted" data-chat="{{ m['id'] }}">💬</button>
+                                        <form action="/block/{{ m['id'] }}" method="post" class="d-inline">
+                                            <button class="btn btn-link icon-btn text-muted" type="submit">🚫</button>
+                                        </form>
+                                        <form action="/favorite/{{ m['id'] }}" method="post" class="d-inline">
+                                            <button class="btn btn-link icon-btn text-muted" type="submit">⭐</button>
+                                        </form>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted" style="font-size:0.8rem;">
+                                        <a href="/member/{{ m['id'] }}" class="text-muted text-decoration-none icon-btn">📷</a>
+                                        {% if m['photos_count'] %}
+                                        <span class="ms-1">{{ m['photos_count'] }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
                             </div>
-                        </a>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <a href="/member/{{ m['id'] }}" class="text-decoration-none">{{ m['name'] or ('会员'+m['id']|string) }}</a>
-                                {% if m['is_verified'] %}<span class="badge bg-success ms-2" data-i18n="verified_badge">已实名认证</span>{% endif %}
-                                <small class="text-muted">{{ m['age_range'] }}</small>
-                            </h5>
-                            <p class="card-text small text-muted">{{ m['country'] }}</p>
-                        </div>
-                        <div class="card-footer bg-white border-top-0 d-flex justify-content-between">
-                            <form action="/like/{{ m['id'] }}" method="post"><button class="btn btn-light btn-sm" type="submit">❤</button></form>
-                            <button class="btn btn-light btn-sm" data-chat="{{ m['id'] }}">✉</button>
                         </div>
                     </div>
                 </div>
@@ -309,6 +393,7 @@
             });
         }
         initMessageNotifications();
+        startPresence();
     });
 
     const chatPanel = document.createElement('div');
@@ -584,6 +669,56 @@
                     showNewMessageToast(msg, total);
                     sendBrowserNotification(msg);
                 }
+            })
+            .catch(function() {});
+    }
+
+    function startPresence() {
+        sendPresencePing();
+        setInterval(function() {
+            sendPresencePing();
+        }, 60000);
+        refreshOnlineBadges();
+        setInterval(function() {
+            refreshOnlineBadges();
+        }, 20000);
+    }
+
+    function sendPresencePing() {
+        if (!window.fetch) return;
+        fetch('/api/ping', {
+            method: 'POST',
+            credentials: 'same-origin'
+        }).catch(function() {});
+    }
+
+    function refreshOnlineBadges() {
+        if (!window.fetch) return;
+        fetch('/api/online_users', { credentials: 'same-origin' })
+            .then(function(res) {
+                if (!res.ok) return null;
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data || !data.online_ids) return;
+                var set = {};
+                data.online_ids.forEach(function(id) {
+                    set[String(id)] = true;
+                });
+                document.querySelectorAll('.member-card').forEach(function(card) {
+                    var mid = card.getAttribute('data-member-id');
+                    var badge = card.querySelector('[data-online-badge="1"]');
+                    if (!badge || !mid) return;
+                    if (set[String(mid)]) {
+                        badge.textContent = '在线';
+                        badge.classList.remove('bg-secondary');
+                        badge.classList.add('bg-success');
+                    } else {
+                        badge.textContent = '离线';
+                        badge.classList.remove('bg-success');
+                        badge.classList.add('bg-secondary');
+                    }
+                });
             })
             .catch(function() {});
     }

@@ -129,6 +129,9 @@
                     <form action="{{ admin_prefix }}/reject/{{ user.id }}" method="post" class="d-inline">
                         <button class="btn btn-danger btn-sm">封禁/拒绝</button>
                     </form>
+                    <form action="{{ admin_prefix }}/block/{{ user.id }}" method="post" class="d-inline ms-2">
+                        <button class="btn btn-outline-danger btn-sm">加入封锁名单</button>
+                    </form>
                     {% elif user.status == 'rejected' %}
                     <form action="{{ admin_prefix }}/approve/{{ user.id }}" method="post" class="d-inline">
                         <button class="btn btn-success btn-sm">重新通过</button>

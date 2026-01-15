@@ -534,6 +534,16 @@
             alert(getTrans('alert_enter_phone'));
             return;
         }
+
+        const meta = (typeof countryCodes !== 'undefined') ? countryCodes.find(c => c.dial_code === countryCode) : null;
+        const digitsOnly = phoneInput.replace(/\D/g, '');
+        if (meta && meta.min_length && meta.max_length) {
+            if (digitsOnly.length < meta.min_length || digitsOnly.length > meta.max_length) {
+                const msg = `该国家区号下手机号码长度应为 ${meta.min_length}${meta.min_length === meta.max_length ? '' : (' - ' + meta.max_length)} 位数字`;
+                alert(msg);
+                return;
+            }
+        }
         const fullPhone = countryCode + phoneInput;
         
         fetch('/send_code', {
@@ -631,9 +641,17 @@
         const code = document.getElementById('country-select').value;
         const phone = document.getElementById('phone-input').value;
         const realPhoneInput = document.getElementById('real-phone');
-        
+        const digitsOnly = phone.replace(/\D/g, '');
+        const meta = (typeof countryCodes !== 'undefined') ? countryCodes.find(c => c.dial_code === code) : null;
+        if (meta && meta.min_length && meta.max_length) {
+            if (digitsOnly.length < meta.min_length || digitsOnly.length > meta.max_length) {
+                const msg = `该国家区号下手机号码长度应为 ${meta.min_length}${meta.min_length === meta.max_length ? '' : (' - ' + meta.max_length)} 位数字`;
+                alert(msg);
+                return false;
+            }
+        }
         if(realPhoneInput) {
-            realPhoneInput.value = code + phone;
+            realPhoneInput.value = code + digitsOnly;
         }
         
         const countryText = document.getElementById('country-select').options[document.getElementById('country-select').selectedIndex].text;
@@ -653,7 +671,16 @@
         const code = select ? select.value : '';
         const phone = input.value.trim();
         if (phone === '') return true;
-        hidden.value = code + phone;
+        const digitsOnly = phone.replace(/\D/g, '');
+        const meta = (typeof countryCodes !== 'undefined') ? countryCodes.find(c => c.dial_code === code) : null;
+        if (meta && meta.min_length && meta.max_length) {
+            if (digitsOnly.length < meta.min_length || digitsOnly.length > meta.max_length) {
+                const msg = `该国家区号下手机号码长度应为 ${meta.min_length}${meta.min_length === meta.max_length ? '' : (' - ' + meta.max_length)} 位数字`;
+                alert(msg);
+                return false;
+            }
+        }
+        hidden.value = code + digitsOnly;
         return true;
     }
 </script>

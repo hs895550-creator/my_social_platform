@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 # UniSMS 配置
 UNISMS_ACCESS_KEY_ID = "kFWQ7AsDxdxARQSpaXZQx1uiKdNBWn8fx7kXgPAMAFqXvXiXP"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, "social.db")
+DATABASE = os.getenv("DATABASE_PATH", os.path.join(BASE_DIR, "social.db"))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
 PRIVATE_UPLOAD_DIR = os.path.join(BASE_DIR, "private_uploads")
@@ -177,7 +177,7 @@ async def init_db():
             "marital_status TEXT", "smoking TEXT", "match_gender TEXT",
             "match_age_min INTEGER", "match_age_max INTEGER",
             "asset_proof_path TEXT", "is_ai BOOLEAN DEFAULT 0", "last_active_at TIMESTAMP",
-            "status TEXT DEFAULT 'pending_upload'", "whatsapp_contact TEXT"
+            "status TEXT DEFAULT 'pending_upload'", "whatsapp_contact TEXT", "self_intro TEXT"
         ]
         
         for col in new_columns:
@@ -473,6 +473,7 @@ async def profile_update(
     match_gender: str = Form(None),
     match_age_min: int = Form(None),
     match_age_max: int = Form(None),
+    self_intro: str = Form(None),
 ):
     user_id = request.session.get("user_id")
     if not user_id:
@@ -484,10 +485,10 @@ async def profile_update(
         await db.execute("""
             UPDATE users SET 
             name=?, dob=?, state=?, city=?, hair_color=?, eye_color=?, height=?, weight=?,
-            match_gender=?, match_age_min=?, match_age_max=?
+            match_gender=?, match_age_min=?, match_age_max=?, self_intro=?
             WHERE id=?
         """, (name, dob, state, city, hair_color, eye_color, height, weight,
-               match_gender, match_age_min, match_age_max, user_id))
+               match_gender, match_age_min, match_age_max, self_intro, user_id))
         await db.commit()
         
     return RedirectResponse(url="/profile/photos", status_code=303)
@@ -717,7 +718,33 @@ async def member_page(request: Request, member_id: int):
         async with db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id = ? AND read_at IS NULL", (user_id,)) as c:
             unread_messages_count = (await c.fetchone())[0]
 
-        async with db.execute("SELECT id, name, gender, age_range, country, city, avatar_path, is_verified, is_ai FROM users WHERE id = ?", (member_id,)) as cursor:
+        async with db.execute(
+            """
+            SELECT
+                id,
+                name,
+                gender,
+                age_range,
+                country,
+                city,
+                avatar_path,
+                is_verified,
+                is_ai,
+                state,
+                hair_color,
+                eye_color,
+                height,
+                weight,
+                marital_status,
+                smoking,
+                match_gender,
+                match_age_min,
+                match_age_max,
+                self_intro
+            FROM users WHERE id = ?
+            """,
+            (member_id,),
+        ) as cursor:
             member = await cursor.fetchone()
         if not member:
             raise HTTPException(status_code=404, detail="用户不存在")
@@ -917,6 +944,34 @@ async def api_unread_messages(request: Request):
         },
     }
 
+@app.post("/api/ping")
+async def api_ping(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="未登录")
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("UPDATE users SET last_active_at = CURRENT_TIMESTAMP WHERE id = ?", (user_id,))
+        await db.commit()
+    return {"ok": True}
+
+@app.get("/api/online_users")
+async def api_online_users(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="未登录")
+    async with aiosqlite.connect(DATABASE) as db:
+        async with db.execute(
+            """
+            SELECT id FROM users
+            WHERE status = 'active'
+              AND last_active_at IS NOT NULL
+              AND last_active_at >= datetime('now','-5 minutes')
+            """
+        ) as cursor:
+            rows = await cursor.fetchall()
+    online_ids = [r[0] for r in rows]
+    return {"online_ids": online_ids}
+
 @app.get("/status_check", response_class=HTMLResponse)
 async def status_check(request: Request):
     user_id = request.session.get("user_id")
@@ -1004,9 +1059,39 @@ async def dashboard(request: Request):
             order = "u.is_verified DESC, u.id DESC"
         elif s == "photos":
             order = "(SELECT COUNT(1) FROM user_photos p WHERE p.user_id = u.id) DESC, u.id DESC"
-        sql = f"SELECT u.id, u.name, u.gender, u.age_range, u.country, u.avatar_path, u.is_verified {base} ORDER BY {order} LIMIT 20"
+        sql = (
+            "SELECT u.id, u.name, u.gender, u.age_range, u.country, u.avatar_path, u.is_verified, "
+            "u.created_at, u.last_active_at, u.match_gender, u.match_age_min, u.match_age_max, "
+            "(SELECT COUNT(1) FROM user_photos p WHERE p.user_id = u.id) AS photos_count "
+            f"{base} ORDER BY {order} LIMIT 20"
+        )
         async with db.execute(sql, tuple(params)) as cursor:
-            members = await cursor.fetchall()
+            rows = await cursor.fetchall()
+        members = []
+        now = datetime.datetime.utcnow()
+        for row in rows:
+            d = dict(row)
+            created_at = d.get("created_at")
+            last_active_at = d.get("last_active_at")
+            is_new = False
+            is_online = False
+            if created_at:
+                try:
+                    dt = datetime.datetime.fromisoformat(created_at)
+                    if (now - dt).days <= 3:
+                        is_new = True
+                except Exception:
+                    pass
+            if last_active_at:
+                try:
+                    lt = datetime.datetime.fromisoformat(last_active_at)
+                    if (now - lt).total_seconds() <= 300:
+                        is_online = True
+                except Exception:
+                    pass
+            d["is_new"] = is_new
+            d["is_online"] = is_online
+            members.append(d)
 
         async with db.execute(
             """
@@ -1367,6 +1452,15 @@ async def admin_approve(request: Request, user_id: int):
         await db.execute("UPDATE users SET status = 'active', is_verified = 1 WHERE id = ?", (user_id,))
         await db.commit()
         
+    return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
+
+@app.post(f"{ADMIN_PREFIX}/block/{{user_id}}")
+async def admin_block_user(request: Request, user_id: int):
+    if not request.session.get("is_admin"):
+        return RedirectResponse(url=f"{ADMIN_PREFIX}/login", status_code=303)
+    async with aiosqlite.connect(DATABASE) as db:
+        await db.execute("INSERT OR IGNORE INTO blocks (blocker_id, blocked_id) VALUES (?, ?)", (0, user_id))
+        await db.commit()
     return RedirectResponse(url=f"{ADMIN_PREFIX}/dashboard", status_code=303)
 
 @app.post(f"{ADMIN_PREFIX}/reject/{{user_id}}")
