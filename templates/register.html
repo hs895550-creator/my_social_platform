@@ -48,6 +48,46 @@
             </div>
 
             <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_marital_status">婚姻状况</label>
+                <select name="marital_status" class="w-full border rounded px-3 py-2">
+                    <option value="" data-i18n="gender_any">不限</option>
+                    <option value="single" data-i18n="marital_single">未婚</option>
+                    <option value="divorced" data-i18n="marital_divorced">离异</option>
+                    <option value="widowed" data-i18n="marital_widowed">丧偶</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_match_gender">期望对象性别</label>
+                <select name="match_gender" class="w-full border rounded px-3 py-2">
+                    <option value="" data-i18n="gender_any">不限</option>
+                    <option value="male" data-i18n="gender_male">男</option>
+                    <option value="female" data-i18n="gender_female">女</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_match_age_min">期望年龄最小</label>
+                    <select name="match_age_min" class="w-full border rounded px-3 py-2">
+                        <option value="" data-i18n="gender_any">不限</option>
+                        {% for i in range(30, 81) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="label_match_age_max">期望年龄最大</label>
+                    <select name="match_age_max" class="w-full border rounded px-3 py-2">
+                        <option value="" data-i18n="gender_any">不限</option>
+                        {% for i in range(35, 101) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
                 <label class="block text-gray-700 text-sm font-bold mb-2" data-i18n="country_label">国家/地区</label>
                 <input type="text" name="country" placeholder="例如：China, USA" class="w-full border rounded px-3 py-2" required data-i18n-placeholder="country_placeholder">
             </div>

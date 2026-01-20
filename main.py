@@ -15,6 +15,7 @@ import traceback
 import io
 import csv
 import datetime
+from typing import Optional
 
 try:
     from uni.client import UniClient
@@ -306,6 +307,10 @@ async def register(
     gender: str = Form(...),
     age_range: str = Form(...),
     country: str = Form(...),
+    marital_status: Optional[str] = Form(None),
+    match_gender: Optional[str] = Form(None),
+    match_age_min: Optional[int] = Form(None),
+    match_age_max: Optional[int] = Form(None),
     agreement: bool = Form(False)
 ):
     if not agreement:
@@ -339,10 +344,13 @@ async def register(
                     })
             
             # 插入新用户
-            await db.execute("""
-                INSERT INTO users (phone, password, gender, age_range, country, ip_address)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (phone, password, gender, age_range, country, ip))
+            await db.execute(
+                """
+                INSERT INTO users (phone, password, gender, age_range, country, ip_address, marital_status, match_gender, match_age_min, match_age_max)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (phone, password, gender, age_range, country, ip, marital_status, match_gender, match_age_min, match_age_max),
+            )
             await db.commit()
             
             # 自动登录

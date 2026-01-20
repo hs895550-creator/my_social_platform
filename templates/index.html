@@ -224,6 +224,43 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <select class="form-select" name="marital_status">
+                                            <option value="" data-i18n="gender_any">不限</option>
+                                            <option value="single" data-i18n="marital_single">未婚</option>
+                                            <option value="divorced" data-i18n="marital_divorced">离异</option>
+                                            <option value="widowed" data-i18n="marital_widowed">丧偶</option>
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <select class="form-select" name="match_gender">
+                                            <option value="" data-i18n="gender_any">不限</option>
+                                            <option value="male" data-i18n="gender_male">男</option>
+                                            <option value="female" data-i18n="gender_female">女</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label small mb-1" data-i18n="label_match_age_min">期望年龄最小:</label>
+                                        <select class="form-select" name="match_age_min">
+                                            <option value="" data-i18n="gender_any">不限</option>
+                                            {% for i in range(30, 81) %}
+                                            <option value="{{ i }}">{{ i }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label small mb-1" data-i18n="label_match_age_max">期望年龄最大:</label>
+                                        <select class="form-select" name="match_age_max">
+                                            <option value="" data-i18n="gender_any">不限</option>
+                                            {% for i in range(35, 101) %}
+                                            <option value="{{ i }}">{{ i }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
                                 <input type="hidden" name="country" id="real-country">
                                 
                                 <div class="mb-3 form-check">
