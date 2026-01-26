@@ -1,0 +1,20 @@
+[Unit]
+Description=Social Platform Service (datamgr.it.com)
+After=network.target
+
+[Service]
+# 请将下面的 User 修改为您的服务器用户名（例如 root 或 ubuntu）
+User=root
+# 请将下面的路径修改为项目在服务器上的实际绝对路径
+WorkingDirectory=/var/www/my_social_platform
+# 启动命令
+ExecStart=/usr/bin/python3 main.py
+# 环境变量
+Environment=PORT=8080
+# 生产环境建议关闭调试模式
+Environment=ENV=production
+# 自动重启
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
